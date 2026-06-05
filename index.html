@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L&M Atelier | Alta Barbearia & Depilação Exclusiva</title>
+    
+    <!-- Google Fonts: Playfair Display para títulos editoriais e Inter para leitura de alta legibilidade -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS para estilização utilitária de alta fidelidade -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome para ícones refinados -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Alpine.js para reatividade premium no agendamento e interações dinâmicas -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Configuração de temas de cores personalizados -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        gold: {
+                            50: '#F8F9FA',
+                            100: '#E9ECEF',
+                            200: '#DEE2E6',
+                            300: '#CED4DA',
+                            400: '#6C757D',
+                            500: '#5A6268',
+                            600: '#495057',
+                            700: '#343A40',
+                            800: '#212529',
+                            900: '#0F1419',
+                        },
+                        obsidian: {
+                            50: '#F4F4F4',
+                            100: '#E4E4E6',
+                            200: '#C8C9CD',
+                            300: '#A1A3AB',
+                            400: '#71757F',
+                            500: '#4E525E',
+                            600: '#3C3E47',
+                            700: '#2A2B32',
+                            800: '#15161A', // Fundo principal ultra-premium
+                            900: '#0B0C0E', // Escuro profundo absoluto
+                        }
+                    },
+                    animation: {
+                        'pulse-subtle': 'pulseSubtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float-slow': 'floatSlow 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        pulseSubtle: {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '.7' },
+                        },
+                        floatSlow: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0B0C0E;
+            color: #F4F4F4;
+            overflow-x: hidden;
+        }
+        
+        /* Personalização refinada da barra de rolagem para combinar com o tom escuro premium */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0C0E;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2A2B32;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #C99E67;
+        }
+
+        /* Ocultar barra de rolagem onde necessário (ex: abas do agendador no mobile) */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body x-data="bookingApp()" class="antialiased min-h-screen flex flex-col relative selection:bg-gold-400 selection:text-obsidian-900">
+
+
+
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-obsidian-900/85 border-b border-obsidian-800 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
+            <a href="#" class="flex flex-col group">
+                <span class="font-serif text-2xl tracking-[0.2em] text-white group-hover:text-gold-300 transition-colors duration-300 font-bold">L&M</span>
+                <span class="text-[9px] tracking-[0.4em] uppercase text-gold-400 font-sans mt-0.5">Atelier de Beleza</span>
+            </a>
+            
+            <nav class="hidden md:flex items-center space-x-10 text-xs tracking-widest uppercase font-medium">
+                <a href="#universo" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">O Universo</a>
+                <a href="#profissionais" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Lorena & Márcio</a>
+                <a href="#experiencias" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Menu de Serviços</a>
+                <a href="#depoimentos" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Relatos</a>
+                <button @click="openAppointmentsModal()" class="relative text-obsidian-300 hover:text-gold-300 transition-colors duration-300 flex items-center gap-2">
+                    Meus Agendamentos
+                    <span x-show="savedAppointments.length > 0" class="absolute -top-2 -right-3 bg-gold-400 text-obsidian-900 rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold" x-text="savedAppointments.length"></span>
+                </button>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <a href="#agendador" @click="scrollToSection('agendador')" class="hidden sm:inline-block bg-gold-500 hover:bg-gold-600 text-obsidian-900 text-xs tracking-widest uppercase font-semibold py-3.5 px-7 rounded-sm shadow-xl transition-all duration-300">
+                    Reservar Horário
+                </a>
+                
+                <!-- Menu Mobile (Trigger) -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-white hover:text-gold-400 p-2 focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid fa-bars-staggered text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menu responsivo para mobile -->
+        <div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-4" class="md:hidden bg-obsidian-900 border-b border-obsidian-800 px-6 py-8 space-y-4 font-sans text-sm tracking-widest uppercase text-center absolute w-full left-0">
+            <a href="#universo" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">O Universo</a>
+            <a href="#profissionais" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Lorena & Márcio</a>
+            <a href="#experiencias" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Menu de Serviços</a>
+            <a href="#depoimentos" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Relatos</a>
+            <button @click="mobileMenuOpen = false; openAppointmentsModal()" class="w-full py-2 text-obsidian-200 hover:text-gold-300 flex justify-center items-center gap-2">
+                Meus Agendamentos
+                <span x-show="savedAppointments.length > 0" class="bg-gold-400 text-obsidian-900 rounded-full px-2 py-0.5 text-[9px] font-bold" x-text="savedAppointments.length"></span>
+            </button>
+            <a href="#agendador" @click="mobileMenuOpen = false; scrollToSection('agendador')" class="block bg-gold-400 text-obsidian-900 font-semibold py-3 rounded-sm">
+                Reservar Horário
+            </a>
+        </div>
+    </header>
+
+    <main class="flex-grow z-10">
+        
+        <section id="universo" class="relative min-h-[calc(100vh-6rem)] flex items-center py-20 px-6 overflow-hidden">
+            <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Coluna de Texto: Apresentação Nobre -->
+                <div class="lg:col-span-7 space-y-8 z-10">
+                    <div class="flex items-center space-x-3 text-gold-400 tracking-widest uppercase text-xs">
+                        <span class="w-8 h-[1px] bg-gold-400"></span>
+                        <span>O encontro do design, precisão e privacidade</span>
+                    </div>
+                    
+                    <h1 class="font-serif text-4xl sm:text-6xl lg:text-7xl tracking-tight leading-[1.1] text-white">
+                        Sua estética, <br>
+                        <span class="italic text-gold-300 font-normal">lapidada por</span> <br class="sm:hidden">
+                        mestres artesãos.
+                    </h1>
+                    
+                    <p class="text-obsidian-300 font-sans text-base sm:text-lg font-light leading-relaxed max-w-xl">
+                        A união meticulosa de dois mundos de alta performance estética. A suavidade e maestria em depilação facial e corporal com <strong class="text-gold-300 font-medium">Lorena</strong>, aliada à clássica barbearia e refinamento do pelo masculino sob os cuidados de <strong class="text-gold-300 font-medium">Márcio</strong>.
+                    </p>
+
+                    <!-- Selos de Experiência Exclusiva -->
+                    <div class="grid grid-cols-1 gap-6 pt-4 border-t border-obsidian-800 max-w-md">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-gold-400 text-xl"><i class="fa-solid fa-door-closed"></i></span>
+                            <span class="text-xs uppercase tracking-widest text-obsidian-200">Atendimento Privativo</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                        <a href="#agendador" @click="scrollToSection('agendador')" class="bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-semibold tracking-widest text-xs uppercase py-4 px-10 rounded-sm text-center shadow-lg transition-all duration-300">
+                            Agendar Experiência
+                        </a>
+                        <a href="#experiencias" @click="scrollToSection('experiencias')" class="border border-obsidian-700 hover:border-gold-300 text-white font-medium tracking-widest text-xs uppercase py-4 px-10 rounded-sm text-center bg-obsidian-900/40 hover:bg-obsidian-800/40 transition-all duration-300">
+                            Explorar Serviços
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Coluna Visual: Composição de Imagem em Mosaico Editorial -->
+                <div class="lg:col-span-5 relative mt-8 lg:mt-0">
+                    <div class="relative w-full max-w-md mx-auto aspect-[4/5] bg-obsidian-800 rounded-sm overflow-hidden shadow-2xl border border-obsidian-700 p-4">
+                        <div class="absolute inset-0 bg-gradient-to-t from-obsidian-900 via-transparent to-transparent z-10"></div>
+                        
+                        <!-- Representação Gráfica Minimalista e Altamente Elegante (Luzes de Espelho e Silhuetas em Vetor) -->
+                        <div class="absolute inset-0 flex flex-col justify-between p-8 z-20">
+                            <div class="flex justify-between items-start">
+                                <span class="text-[10px] uppercase tracking-[0.3em] text-gold-400 bg-obsidian-900/80 px-3 py-1.5 rounded-sm backdrop-blur-sm border border-gold-500/10">Estúdio Particular</span>
+                                <span class="text-xs text-obsidian-400 font-serif italic">São Paulo - SP</span>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div class="w-12 h-[2px] bg-gold-400"></div>
+                                <h3 class="font-serif text-3xl text-white tracking-wide">Lorena & Márcio</h3>
+                                <p class="text-xs text-obsidian-300 leading-relaxed font-light">Cabines individuais acusticamente isoladas para máxima discrição e absoluto relaxamento.</p>
+                            </div>
+                        </div>
+
+
+
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="profissionais" class="py-24 px-6 bg-obsidian-900/50 border-y border-obsidian-850 relative">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center max-w-2xl mx-auto space-y-4 mb-16">
+                    <span class="text-gold-400 text-xs tracking-widest uppercase font-medium">Os Especialistas</span>
+                    <h2 class="font-serif text-3xl sm:text-5xl text-white leading-tight">Mãos esculpidas na tradição do cuidado sob medida</h2>
+                    <div class="w-16 h-[1px] bg-gold-400 mx-auto mt-4"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+                    
+                    <!-- Bloco Lorena -->
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-8 sm:p-12 rounded-sm relative group hover:border-gold-500/20 transition-all duration-500 hover:-translate-y-1">
+                        <div class="absolute top-0 right-0 p-6 font-serif text-6xl text-gold-500/10 font-bold select-none group-hover:text-gold-500/15 transition-colors">01</div>
+                        <div class="flex items-center space-x-4 mb-6">
+                            <div class="w-12 h-12 rounded-full border border-gold-400 flex items-center justify-center text-gold-400">
+                                <i class="fa-solid fa-leaf text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif text-2xl text-white font-semibold">Lorena</h3>
+                                <p class="text-[10px] uppercase tracking-widest text-gold-400 font-sans">Estética & Depilação Avançada</p>
+                            </div>
+                        </div>
+                        <p class="text-obsidian-300 font-light leading-relaxed mb-6">
+                            Especializada em técnicas francesas de depilação orgânica, Lorena transformou a depilação tradicional em um ritual de bem-estar. Utilizando ceras de ativos botânicos desenvolvidas artesanalmente para peles sensíveis, ela foca no alívio de dor, na hidratação pós-remoção e na privacidade absoluta de cada cliente, seja feminina ou geral.
+                        </p>
+                        <div class="space-y-3 pt-4 border-t border-obsidian-850">
+                            <div class="flex items-center space-x-2 text-xs text-obsidian-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
+                                <span>Depilação com Cera Orgânica Calmante</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-xs text-obsidian-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
+                                <span>Tratamentos de Foliculite de alta performance</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-xs text-obsidian-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
+                                <span>Design de Sobrancelhas de Visagismo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bloco Márcio -->
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-8 sm:p-12 rounded-sm relative group hover:border-gold-500/20 transition-all duration-500 hover:-translate-y-1">
+                        <div class="absolute top-0 right-0 p-6 font-serif text-6xl text-gold-500/10 font-bold select-none group-hover:text-gold-500/15 transition-colors">02</div>
+                        <div class="flex items-center space-x-4 mb-6">
+                            <div class="w-12 h-12 rounded-full border border-gold-400 flex items-center justify-center text-gold-400">
+                                <i class="fa-solid fa-scissors text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-serif text-2xl text-white font-semibold">Márcio</h3>
+                                <p class="text-[10px] uppercase tracking-widest text-gold-400 font-sans">Barbeiro & Corporal Masculino</p>
+                            </div>
+                        </div>
+                        <p class="text-obsidian-300 font-light leading-relaxed mb-6">
+                            Márcio combina a navalha clássica italiana e as tesouras de alta precisão com o que há de mais moderno em estética de pelos masculinos. Além de barbas terapêuticas esculpidas à toalha quente, ele é pioneiro em depilação masculina integral e corporal com técnicas que reduzem drasticamente o desconforto e garantem um visual limpo e polido.
+                        </p>
+                        <div class="space-y-3 pt-4 border-t border-obsidian-850">
+                            <div class="flex items-center space-x-2 text-xs text-obsidian-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
+                                <span>Barboterapia com Toalhas Quentes e Óleos Essenciais</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-xs text-obsidian-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
+                                <span>Cortes Clássicos e Contemporâneos</span>
+                            </div>
+                            <div class="flex items-center space-x-2 text-xs text-obsidian-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
+                                <span>Depilação Corporal Masculina (total discrição)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="experiencias" class="py-24 px-6 max-w-7xl mx-auto relative">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                
+                <!-- Coluna Lateral de Filtro e Info -->
+                <div class="lg:col-span-4 lg:sticky lg:top-32 space-y-6">
+                    <span class="text-gold-400 text-xs tracking-widest uppercase font-medium block">Menu de Experiências</span>
+                    <h2 class="font-serif text-4xl text-white">Consulte nossa carta de rituais e cuidados</h2>
+                    <p class="text-obsidian-300 font-light text-sm leading-relaxed">
+                        Selecione as experiências que deseja para o seu agendamento. Os valores são transparentes e você pode combinar múltiplos serviços em um único horário.
+                    </p>
+                    
+                    <!-- Seletores Rápidos de Profissional na Esquerda -->
+                    <div class="space-y-3 pt-6">
+                        <p class="text-xs uppercase tracking-widest text-obsidian-400">Filtro Rápido:</p>
+                        <div class="flex flex-col gap-2">
+                            <button @click="servicesFilter = 'todos'" :class="servicesFilter === 'todos' ? 'border-gold-400 text-gold-300 bg-gold-950/20' : 'border-obsidian-800 text-obsidian-300 hover:border-obsidian-700'" class="w-full text-left px-4 py-3 border text-xs tracking-widest uppercase transition-all duration-300 rounded-sm">
+                                <i class="fa-solid fa-list mr-2 text-[10px]"></i> Mostrar Todo o Atelier
+                            </button>
+                            <button @click="servicesFilter = 'lorena'" :class="servicesFilter === 'lorena' ? 'border-gold-400 text-gold-300 bg-gold-950/20' : 'border-obsidian-800 text-obsidian-300 hover:border-obsidian-700'" class="w-full text-left px-4 py-3 border text-xs tracking-widest uppercase transition-all duration-300 rounded-sm">
+                                <i class="fa-solid fa-leaf mr-2 text-[10px]"></i> Studio Lorena (Feminino & Geral)
+                            </button>
+                            <button @click="servicesFilter = 'marcio'" :class="servicesFilter === 'marcio' ? 'border-gold-400 text-gold-300 bg-gold-950/20' : 'border-obsidian-800 text-obsidian-300 hover:border-obsidian-700'" class="w-full text-left px-4 py-3 border text-xs tracking-widest uppercase transition-all duration-300 rounded-sm">
+                                <i class="fa-solid fa-scissors mr-2 text-[10px]"></i> Barber Lounge Márcio (Masculino)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Serviços Editorial com Adição Direta -->
+                <div class="lg:col-span-8 space-y-12">
+                    
+                    <!-- Seção Lorena dentro da Lista -->
+                    <div x-show="servicesFilter === 'todos' || servicesFilter === 'lorena'" x-transition class="space-y-6">
+                        <div class="flex items-center space-x-4 pb-2 border-b border-obsidian-800">
+                            <span class="font-serif text-lg tracking-widest uppercase text-gold-400">Lorena</span>
+                            <span class="text-[10px] tracking-wider text-obsidian-400 uppercase">Depilação Feminina</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-4">
+                            <template x-for="(service, idx) in lorenaServices" :key="'lorena-'+idx">
+                                <div class="p-6 bg-obsidian-900 border border-obsidian-850 hover:border-obsidian-700 rounded-sm transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div class="space-y-1 max-w-xl">
+                                        <div class="flex items-center gap-3">
+                                            <h4 class="font-serif text-lg text-white font-medium" x-text="service.name"></h4>
+                                        </div>
+                                        <p class="text-xs text-obsidian-400 font-light" x-text="service.desc"></p>
+                                        <span class="text-xs text-obsidian-300 block pt-1"><i class="fa-regular fa-clock mr-1"></i> <span x-text="service.time + ' minutos (aprox)'"></span></span>
+                                    </div>
+                                    <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                                        <span class="font-serif text-xl text-gold-300 font-semibold" x-text="'R$ ' + service.price + ',00'"></span>
+                                        <button @click="addServiceToBooking('lorena', service.name, service.price, service.time)" class="border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 px-4 py-2 text-xs tracking-widest uppercase rounded-sm transition-all duration-300">
+                                            Adicionar
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Seção Márcio dentro da Lista -->
+                    <div x-show="servicesFilter === 'todos' || servicesFilter === 'marcio'" x-transition class="space-y-6">
+                        <div class="flex items-center space-x-4 pb-2 border-b border-obsidian-800">
+                            <span class="font-serif text-lg tracking-widest uppercase text-gold-400">Márcio</span>
+                            <span class="text-[10px] tracking-wider text-obsidian-400 uppercase">Homens e Crianças</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-4">
+                            <template x-for="(service, idx) in marcioServices" :key="'marcio-'+idx">
+                                <div class="p-6 bg-obsidian-900 border border-obsidian-850 hover:border-obsidian-700 rounded-sm transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div class="space-y-1 max-w-xl">
+                                        <div class="flex items-center gap-3">
+                                            <h4 class="font-serif text-lg text-white font-medium" x-text="service.name"></h4>
+                                        </div>
+                                        <p class="text-xs text-obsidian-400 font-light" x-text="service.desc"></p>
+                                        <span class="text-xs text-obsidian-300 block pt-1"><i class="fa-regular fa-clock mr-1"></i> <span x-text="service.time + ' minutos (aprox)'"></span></span>
+                                    </div>
+                                    <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                                        <span class="font-serif text-xl text-gold-300 font-semibold" x-text="'R$ ' + service.price + ',00'"></span>
+                                        <button @click="addServiceToBooking('marcio', service.name, service.price, service.time)" class="border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 px-4 py-2 text-xs tracking-widest uppercase rounded-sm transition-all duration-300">
+                                            Adicionar
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="agendador" class="py-24 border-y border-obsidian-800 relative bg-cover bg-center bg-fixed">
+           
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
+                
+                <div class="text-center space-y-4 mb-10 sm:mb-12">
+                    <span class="text-gold-400 text-xs tracking-widest uppercase font-medium">Experiência Digital Atelier</span>
+                    <h2 class="font-serif text-3xl sm:text-5xl text-white">Consolide seu Momento de Cuidado</h2>
+                    <p class="text-obsidian-300 max-w-lg mx-auto font-light text-sm">
+                        Preencha o formulário abaixo em tempo real. Escolha o serviço, a data perfeita, a hora desejada e receba sua confirmação imediata.
+                    </p>
+                </div>
+
+                <!-- Painel Principal do Agendador (Cartão Editorial de Alta Costura) -->
+                <div class="bg-obsidian-900 border border-obsidian-800 p-6 sm:p-12 rounded-2xl shadow-2xl relative overflow-hidden">
+                    
+                    <!-- Barra de Progresso Visível e Elegante (Mobile Otimizada) -->
+                    <div class="flex overflow-x-auto sm:grid sm:grid-cols-4 gap-6 sm:gap-2 mb-10 pb-3 sm:pb-0 snap-x hide-scrollbar">
+                        <div class="min-w-[140px] sm:min-w-0 pb-2 border-b-2 transition-all duration-300 text-[10px] tracking-widest uppercase font-semibold snap-start text-center whitespace-nowrap" :class="bookingStep >= 1 ? 'border-gold-400 text-gold-300' : 'border-obsidian-800 text-obsidian-500'">
+                            1. Serviços (<span x-text="bookingState.services.length"></span>)
+                        </div>
+                        <div class="min-w-[140px] sm:min-w-0 pb-2 border-b-2 transition-all duration-300 text-[10px] tracking-widest uppercase font-semibold snap-start text-center whitespace-nowrap" :class="bookingStep >= 2 ? 'border-gold-400 text-gold-300' : 'border-obsidian-800 text-obsidian-500'">
+                            2. Data & Hora
+                        </div>
+                        <div class="min-w-[140px] sm:min-w-0 pb-2 border-b-2 transition-all duration-300 text-[10px] tracking-widest uppercase font-semibold snap-start text-center whitespace-nowrap" :class="bookingStep >= 3 ? 'border-gold-400 text-gold-300' : 'border-obsidian-800 text-obsidian-500'">
+                            3. Contato
+                        </div>
+                        <div class="min-w-[140px] sm:min-w-0 pb-2 border-b-2 transition-all duration-300 text-[10px] tracking-widest uppercase font-semibold snap-start text-center whitespace-nowrap" :class="bookingStep >= 4 ? 'border-gold-400 text-gold-300' : 'border-obsidian-800 text-obsidian-500'">
+                            4. Confirmação
+                        </div>
+                    </div>
+
+                    <!-- ETAPA 1: Lista e Seleção de Serviços Selecionados -->
+                    <div x-show="bookingStep === 1" class="space-y-6">
+                        <div class="flex justify-between items-center pb-4 border-b border-obsidian-800">
+                            <h3 class="font-serif text-xl text-white">Serviços escolhidos para o ritual:</h3>
+                            <a href="#experiencias" @click="scrollToSection('experiencias')" class="text-xs text-gold-400 hover:underline">Ver Menu Completo</a>
+                        </div>
+
+                        <!-- Lista Dinâmica de Serviços no Carrinho de Agendamento -->
+                        <div class="space-y-3">
+                            <template x-if="bookingState.services.length === 0">
+                                <div class="text-center py-12 border border-dashed border-obsidian-800 rounded-sm">
+                                    <p class="text-sm text-obsidian-400">Nenhum serviço selecionado ainda.</p>
+                                    <p class="text-xs text-obsidian-500 mt-1">Navegue no menu de experiências acima e clique em "Adicionar".</p>
+                                    <a href="#experiencias" @click="scrollToSection('experiencias')" class="inline-block mt-4 bg-obsidian-800 hover:bg-obsidian-700 text-white text-[10px] tracking-widest uppercase px-6 py-3 rounded-md transition-colors">Explorar Menu</a>
+                                </div>
+                            </template>
+
+                            <template x-for="(service, index) in bookingState.services" :key="index">
+                                <div class="flex justify-between items-center p-4 bg-obsidian-950/40 border border-obsidian-850 rounded-sm">
+                                    <div class="space-y-0.5">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs tracking-wider uppercase font-semibold text-white" x-text="service.name"></span>
+                                            <span class="text-[9px] uppercase tracking-widest text-gold-400 px-1.5 py-0.5 bg-obsidian-900 border border-gold-500/10" x-text="'Profissional: ' + (service.professional === 'lorena' ? 'Lorena' : 'Márcio')"></span>
+                                        </div>
+                                        <div class="text-[11px] text-obsidian-400">
+                                            <span><i class="fa-regular fa-clock mr-1"></i> <span x-text="service.duration"></span> min</span>
+                                            <span class="mx-2">|</span>
+                                            <span>Valor: <span class="text-gold-300 font-semibold" x-text="'R$ ' + service.price"></span></span>
+                                        </div>
+                                    </div>
+                                    <button @click="removeServiceFromBooking(index)" class="text-red-400 hover:text-red-300 text-xs px-2 py-1"><i class="fa-regular fa-trash-can"></i></button>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Totalizador de Preço e Tempo -->
+                        <div x-show="bookingState.services.length > 0" class="p-4 bg-obsidian-950 border border-obsidian-800 rounded-sm flex flex-col sm:flex-row justify-between gap-4">
+                            <div class="flex items-center space-x-6 text-sm">
+                                <div>
+                                    <span class="text-obsidian-400 block text-[10px] uppercase">Duração Total</span>
+                                    <span class="text-white font-medium" x-text="totalDuration + ' minutos'"></span>
+                                </div>
+                                <div class="h-8 w-[1px] bg-obsidian-800"></div>
+                                <div>
+                                    <span class="text-obsidian-400 block text-[10px] uppercase">Cortesia Incluso</span>
+                                    <span class="text-gold-300 font-medium">Bebida Fina Premium</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-obsidian-400 block text-[10px] uppercase">Investimento Total</span>
+                                <span class="text-2xl font-serif text-gold-400 font-bold" x-text="'R$ ' + totalPrice"></span>
+                            </div>
+                        </div>
+
+                        <!-- Botão de Próximo -->
+                        <div class="flex justify-end pt-6" x-show="bookingState.services.length > 0">
+                            <button @click="bookingStep = 2" class="w-full sm:w-auto bg-gold-500 hover:bg-gold-600 text-obsidian-900 text-xs tracking-widest uppercase font-bold py-4 px-8 rounded-xl transition-all flex items-center justify-center gap-2">
+                                Prosseguir para Data & Hora <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ETAPA 2: Seleção de Calendário e Horários Ativos -->
+                    <div x-show="bookingStep === 2" class="space-y-8" x-init="generateAvailableSlots()">
+                        <div class="pb-4 border-b border-obsidian-800">
+                            <h3 class="font-serif text-xl text-white">Escolha o melhor dia e horário:</h3>
+                            <p class="text-xs text-obsidian-400 mt-1">Agendamento em tempo real de acordo com as disponibilidades de Lorena e Márcio.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Escolha da Data -->
+                            <div class="space-y-4">
+                                <label class="block text-xs uppercase tracking-widest text-obsidian-300 ml-1 mb-1">Selecione o Dia:</label>
+                                <input type="date" x-model="bookingState.date" @change="generateAvailableSlots()" class="w-full bg-obsidian-950/80 border border-obsidian-700 focus:border-gold-400 rounded-md text-sm p-4 text-white focus:outline-none focus:ring-1 focus:ring-gold-400 focus:bg-obsidian-900 transition-colors shadow-inner" style="color-scheme: dark;" min="2026-06-05">
+                                
+                                <div class="p-4 bg-obsidian-950/50 rounded-sm border border-obsidian-850 text-xs text-obsidian-400 space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-info-circle text-gold-400"></i>
+                                        <span>Funcionamento de Terça a Sábado das 09:00 às 20:00.</span>
+                                    </div>
+                                    <p>Os atendimentos são estritamente agendados para evitar sobreposição ou filas, oferecendo uma experiência reservada em nossa lounge.</p>
+                                </div>
+                            </div>
+
+                            <!-- Escolha dos Slots de Hora -->
+                            <div class="space-y-4">
+                                <label class="block text-xs uppercase tracking-widest text-obsidian-300">Horários Disponíveis:</label>
+                                
+                                <div class="grid grid-cols-3 gap-2.5 max-h-[220px] overflow-y-auto pr-1">
+                                    <template x-for="time in availableSlots" :key="time">
+                                        <button @click="bookingState.time = time" :class="bookingState.time === time ? 'bg-gold-400 text-obsidian-900 border-gold-400' : 'bg-obsidian-950 text-obsidian-300 border-obsidian-850 hover:border-gold-400'" class="py-2.5 px-3 text-xs tracking-wider border rounded-sm transition-all duration-300 font-medium">
+                                            <span x-text="time"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                                <div x-show="availableSlots.length === 0" class="text-center py-6 text-xs text-obsidian-500 italic">
+                                    Nenhum horário disponível para esta data ou selecione um dia primeiro.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Navegação de Etapa -->
+                        <div class="flex flex-col-reverse sm:flex-row justify-between pt-6 border-t border-obsidian-800 gap-4">
+                            <button @click="bookingStep = 1" class="w-full sm:w-auto border border-obsidian-700 hover:border-white text-white text-xs tracking-widest uppercase py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-arrow-left"></i> Voltar
+                            </button>
+                            <button @click="bookingState.time ? bookingStep = 3 : triggerToast('Por favor, selecione um horário.')" :disabled="!bookingState.time" :class="!bookingState.time ? 'opacity-50 cursor-not-allowed' : ''" class="w-full sm:w-auto bg-gold-500 hover:bg-gold-600 text-obsidian-900 text-xs tracking-widest uppercase font-bold py-4 px-8 rounded-xl transition-all flex items-center justify-center gap-2">
+                                Detalhes de Contato <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ETAPA 3: Dados de Contato e Escolha de Bebida -->
+                    <div x-show="bookingStep === 3" class="space-y-6">
+                        <div class="pb-4 border-b border-obsidian-800">
+                            <h3 class="font-serif text-xl text-white">Quase lá. Insira suas informações pessoais:</h3>
+                            <p class="text-xs text-obsidian-400 mt-1">Garantimos a total confidencialidade dos seus dados corporativos e de contato.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-xs uppercase tracking-widest text-obsidian-300 ml-1">Nome Completo:</label>
+                                <input type="text" x-model="bookingState.clientName" placeholder="Seu nome" class="w-full bg-obsidian-950/80 border border-obsidian-700 focus:border-gold-400 rounded-md text-sm p-4 text-white placeholder-obsidian-500 focus:outline-none focus:ring-1 focus:ring-gold-400 transition-colors shadow-inner">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-xs uppercase tracking-widest text-obsidian-300 ml-1">WhatsApp / Telefone:</label>
+                                <input type="tel" x-model="bookingState.clientPhone" placeholder="(00) 00000-0000" class="w-full bg-obsidian-950/80 border border-obsidian-700 focus:border-gold-400 rounded-md text-sm p-4 text-white placeholder-obsidian-500 focus:outline-none focus:ring-1 focus:ring-gold-400 transition-colors shadow-inner">
+                            </div>
+
+                            <div class="space-y-2 md:col-span-2">
+                                <label class="block text-xs uppercase tracking-widest text-obsidian-300 ml-1">Observações Especiais ou Preferência:</label>
+                                <textarea x-model="bookingState.notes" rows="3" placeholder="Se você possui alergia a algum componente de cera, prefere navalha clássica, ou necessita de silêncio absoluto, nos informe aqui..." class="w-full bg-obsidian-950/80 border border-obsidian-700 focus:border-gold-400 rounded-md text-sm p-4 text-white placeholder-obsidian-500 focus:outline-none focus:ring-1 focus:ring-gold-400 transition-colors shadow-inner"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Navegação de Etapa -->
+                        <div class="flex flex-col-reverse sm:flex-row justify-between pt-6 border-t border-obsidian-800 gap-4">
+                            <button @click="bookingStep = 2" class="w-full sm:w-auto border border-obsidian-700 hover:border-white text-white text-xs tracking-widest uppercase py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-arrow-left"></i> Voltar
+                            </button>
+                            <button @click="validateStep3AndAdvance()" class="w-full sm:w-auto bg-gold-500 hover:bg-gold-600 text-obsidian-900 text-xs tracking-widest uppercase font-bold py-4 px-8 rounded-xl transition-all flex items-center justify-center gap-2">
+                                Revisar Agendamento <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ETAPA 4: Revisão & Confirmação Final -->
+                    <div x-show="bookingStep === 4" class="space-y-6">
+                        <div class="pb-4 border-b border-obsidian-800">
+                            <h3 class="font-serif text-xl text-white">Confirme os detalhes da sua reserva:</h3>
+                            <p class="text-xs text-obsidian-400 mt-1">Verifique as informações antes de oficializar o seu ritual de cuidado no L&M Atelier.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-obsidian-950/60 rounded-sm border border-obsidian-850 text-sm">
+                            <div class="space-y-4">
+                                <h4 class="text-xs uppercase tracking-widest text-gold-400 font-semibold">Resumo do Atendimento</h4>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-obsidian-400 text-xs">Data Reservada:</span>
+                                        <span class="text-white font-medium" x-text="formatDate(bookingState.date)"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-obsidian-400 text-xs">Horário:</span>
+                                        <span class="text-white font-medium" x-text="bookingState.time + 'h'"></span>
+                                    </div>
+                                    <div class="flex justify-between" x-show="bookingState.notes">
+                                        <span class="text-obsidian-400 text-xs">Observações:</span>
+                                        <span class="text-white font-light text-right max-w-[180px] truncate" :title="bookingState.notes" x-text="bookingState.notes"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4 border-t md:border-t-0 md:border-l border-obsidian-800 pt-4 md:pt-0 md:pl-6">
+                                <h4 class="text-xs uppercase tracking-widest text-gold-400 font-semibold">Cliente & Finanças</h4>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-obsidian-400 text-xs">Cliente:</span>
+                                        <span class="text-white font-medium" x-text="bookingState.clientName"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-obsidian-400 text-xs">WhatsApp:</span>
+                                        <span class="text-white font-medium" x-text="bookingState.clientPhone"></span>
+                                    </div>
+                                    <div class="flex justify-between border-t border-obsidian-800 pt-2 mt-2">
+                                        <span class="text-obsidian-400 text-xs font-semibold">Total Geral:</span>
+                                        <span class="text-lg font-serif text-gold-300 font-bold" x-text="'R$ ' + totalPrice"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lista dos Serviços do resumo -->
+                        <div class="space-y-2">
+                            <p class="text-[11px] uppercase tracking-widest text-obsidian-400 font-semibold">Lista de Serviços Confirmados:</p>
+                            <div class="grid grid-cols-1 gap-2">
+                                <template x-for="service in bookingState.services">
+                                    <div class="flex justify-between items-center px-4 py-2.5 bg-obsidian-950/30 border border-obsidian-850 rounded-sm text-xs">
+                                        <span class="text-white" x-text="service.name"></span>
+                                        <span class="text-gold-300" x-text="'R$ ' + service.price"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Aviso de Confirmação Rápida -->
+                        <div class="p-4 bg-gold-950/20 border border-gold-500/20 rounded-sm text-xs text-gold-300 leading-relaxed">
+                            <i class="fa-solid fa-calendar-check mr-1.5"></i> Ao confirmar, seu horário será bloqueado automaticamente na agenda interna da Lorena e do Márcio. O pagamento é realizado diretamente no atelier após a conclusão dos seus rituais estéticos.
+                        </div>
+
+                        <!-- Barra de Navegação de Etapa -->
+                        <div class="flex flex-col-reverse sm:flex-row justify-between pt-6 border-t border-obsidian-800 gap-4">
+                            <button @click="bookingStep = 3" class="w-full sm:w-auto border border-obsidian-700 hover:border-white text-white text-xs tracking-widest uppercase py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-arrow-left"></i> Voltar
+                            </button>
+                            <button @click="confirmBookingFinal()" class="w-full sm:w-auto bg-gold-500 hover:bg-gold-600 text-obsidian-900 text-xs tracking-widest uppercase font-bold py-4 px-10 rounded-xl transition-all duration-300 flex items-center justify-center gap-2">
+                                Confirmar Agendamento <i class="fa-solid fa-circle-check"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="py-24 px-6 max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                
+                <div class="space-y-4">
+                    <div class="w-10 h-10 rounded-sm bg-obsidian-900 border border-gold-400/20 flex items-center justify-center text-gold-400 mb-6">
+                        <i class="fa-solid fa-hand-holding-heart"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl text-white">Higiene & Dermatologia</h3>
+                    <p class="text-obsidian-300 text-sm font-light leading-relaxed">
+                        Nossos equipamentos são autoclave-esterilizados de grau médico. As ceras utilizadas pela Lorena são 100% descartáveis e formuladas com princípios botânicos calmantes, prevenindo qualquer agressão à barreira cutânea.
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="w-10 h-10 rounded-sm bg-obsidian-900 border border-gold-400/20 flex items-center justify-center text-gold-400 mb-6">
+                        <i class="fa-solid fa-eye-slash"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl text-white">Privacidade & Conforto</h3>
+                    <p class="text-obsidian-300 text-sm font-light leading-relaxed">
+                        Esqueça salões barulhentos e cheios de olhares. Nossas cabines de atendimento são separadas e fechadas, garantindo isolamento acústico e visual completo. Ideal para quem valoriza a máxima discrição durante a depilação facial ou corporal.
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="w-10 h-10 rounded-sm bg-obsidian-900 border border-gold-400/20 flex items-center justify-center text-gold-400 mb-6">
+                        <i class="fa-solid fa-whiskey-glass"></i>
+                    </div>
+                    <h3 class="font-serif text-2xl text-white">O Experiência de Lounge</h3>
+                    <p class="text-obsidian-300 text-sm font-light leading-relaxed">
+                        Muito mais que estética. Sua passagem pelo Atelier inclui uma carta refinada de bebidas inclusas. Desfrute de um single malt premium, espumante gelado, cafés de grãos selecionados e águas saborizadas em nossa lounge com trilha sonora refinada.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="py-24 bg-obsidian-950 border-t border-obsidian-850">
+            <div class="max-w-7xl mx-auto px-6">
+                
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
+                    <div class="space-y-4">
+                        <span class="text-gold-400 text-xs tracking-widest uppercase font-medium">Atmosfera Atelier</span>
+                        <h2 class="font-serif text-3xl sm:text-5xl text-white">Ambientes desenhados para o seu bem-estar</h2>
+                    </div>
+                    <p class="text-obsidian-300 font-light text-sm max-w-sm leading-relaxed">
+                        Nossa arquitetura prioriza o acolhimento, minimalismo moderno e relaxamento total. Conheça as salas reservadas de Lorena e o lounge barber de Márcio.
+                    </p>
+                </div>
+
+                <!-- Grid Mosaico Editorial de Fotos Reais Simuladas de Alta Definição -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Imagem 1: Barber Chair -->
+                    <div class="group relative aspect-[4/3] bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800">
+                        <div class="absolute inset-0 bg-gradient-to-t from-obsidian-950 via-transparent to-transparent opacity-80 z-10"></div>
+                        <div class="absolute inset-0 flex flex-col justify-end p-6 z-20">
+                            <span class="text-[10px] uppercase tracking-widest text-gold-400 font-sans">Barber Lounge</span>
+                            <h4 class="font-serif text-lg text-white font-medium">A Cadeira de Márcio</h4>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=600" alt="Cadeira de barbeiro de couro vintage" class="w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700" onerror="this.src='https://placehold.co/600x450/15161A/C99E67?text=Barber+Lounge'">
+                    </div>
+
+                    <!-- Imagem 2: Estúdio de Depilação -->
+                    <div class="group relative aspect-[4/3] bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800">
+                        <div class="absolute inset-0 bg-gradient-to-t from-obsidian-950 via-transparent to-transparent opacity-80 z-10"></div>
+                        <div class="absolute inset-0 flex flex-col justify-end p-6 z-20">
+                            <span class="text-[10px] uppercase tracking-widest text-gold-400 font-sans">Cabines Estéticas</span>
+                            <h4 class="font-serif text-lg text-white font-medium">Refúgio Lorena</h4>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&q=80&w=600" alt="Mesa de massagem e estética premium" class="w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700" onerror="this.src='https://placehold.co/600x450/15161A/C99E67?text=Refugio+Lorena'">
+                    </div>
+
+                    <!-- Imagem 3: Copo de Whisky / Cortesia -->
+                    <div class="group relative aspect-[4/3] bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800">
+                        <div class="absolute inset-0 bg-gradient-to-t from-obsidian-950 via-transparent to-transparent opacity-80 z-10"></div>
+                        <div class="absolute inset-0 flex flex-col justify-end p-6 z-20">
+                            <span class="text-[10px] uppercase tracking-widest text-gold-400 font-sans">Bem-Vindo</span>
+                            <h4 class="font-serif text-lg text-white font-medium">Atendimento Single Malt</h4>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&q=80&w=600" alt="Copo de whisky com gelo na recepção" class="w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700" onerror="this.src='https://placehold.co/600x450/15161A/C99E67?text=Atendimento+Gourmet'">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="depoimentos" class="py-24 px-6 max-w-7xl mx-auto">
+            <div class="text-center max-w-xl mx-auto mb-16 space-y-4">
+                <span class="text-gold-400 text-xs tracking-widest uppercase font-medium">A Voz da Confiança</span>
+                <h2 class="font-serif text-3xl sm:text-5xl text-white">Relatos daqueles que vivem a experiência</h2>
+                <div class="w-16 h-[1px] bg-gold-400 mx-auto mt-4"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Depoimento 1 -->
+                <div class="bg-obsidian-900 p-8 border border-obsidian-850 rounded-sm relative">
+                    <div class="text-gold-400 mb-4 text-xs">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="text-obsidian-300 font-light text-sm italic leading-relaxed mb-6">
+                        "Estou acostumada a fazer depilação e a Lorena é simplesmente genial. A cera que ela desenvolve não me dá foliculite e ela tem uma delicadeza que torna o momento super tolerável. O estúdio é impecável em termos de privacidade."
+                    </p>
+                    <div class="flex items-center space-x-3 border-t border-obsidian-850 pt-4">
+                        <div class="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center font-serif text-xs text-gold-400">AM</div>
+                        <div>
+                            <span class="text-white text-xs font-semibold block">Ana Maria G.</span>
+                            <span class="text-[10px] text-obsidian-400">Cliente Studio Lorena</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Depoimento 2 -->
+                <div class="bg-obsidian-900 p-8 border border-obsidian-850 rounded-sm relative">
+                    <div class="text-gold-400 mb-4 text-xs">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="text-obsidian-300 font-light text-sm italic leading-relaxed mb-6">
+                        "Encontrei no Márcio o barbeiro ideal. Ele tem uma precisão na tesoura incrível para cortes clássicos e a barboterapia é de dormir de tão relaxante. Faço depilação no peito com ele e a discrição e eficácia são absolutas."
+                    </p>
+                    <div class="flex items-center space-x-3 border-t border-obsidian-850 pt-4">
+                        <div class="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center font-serif text-xs text-gold-400">RC</div>
+                        <div>
+                            <span class="text-white text-xs font-semibold block">Rodrigo C.</span>
+                            <span class="text-[10px] text-obsidian-400">Cliente Márcio Lounge</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Depoimento 3 -->
+                <div class="bg-obsidian-900 p-8 border border-obsidian-850 rounded-sm relative">
+                    <div class="text-gold-400 mb-4 text-xs">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <p class="text-obsidian-300 font-light text-sm italic leading-relaxed mb-6">
+                        "O L&M Atelier é diferenciado. O agendamento é super fluido e quando você chega é recebida de forma exclusiva com um bom espumante brut. Lorena cuidou do meu design de sobrancelhas e o resultado foi espetacular."
+                    </p>
+                    <div class="flex items-center space-x-3 border-t border-obsidian-850 pt-4">
+                        <div class="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center font-serif text-xs text-gold-400">VS</div>
+                        <div>
+                            <span class="text-white text-xs font-semibold block">Valéria S.</span>
+                            <span class="text-[10px] text-obsidian-400">Cliente Estética Atelier</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+                <div x-show="successModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/90 z-50 backdrop-blur-md flex items-center justify-center p-6">
+            <div class="bg-obsidian-900 border border-obsidian-800 max-w-lg w-full p-8 sm:p-12 text-center rounded-sm space-y-6 shadow-2xl relative">
+                <div class="w-16 h-16 rounded-full bg-gold-500/10 border border-gold-400 flex items-center justify-center text-gold-400 mx-auto text-2xl animate-float-slow">
+                    <i class="fa-solid fa-champagne-glasses"></i>
+                </div>
+                
+                <h3 class="font-serif text-2xl sm:text-3xl text-white">Sua Experiência está Selada!</h3>
+                <p class="text-obsidian-300 text-sm font-light leading-relaxed">
+                    Parabéns, <span class="font-semibold text-white" x-text="bookingState.clientName"></span>. Seu horário foi reservado com sucesso no L&M Atelier. Lorena e Márcio já estão cientes dos seus detalhes e preferências.
+                </p>
+
+                <!-- Box Resumo Rápido -->
+                <div class="p-4 bg-obsidian-950 border border-obsidian-850 rounded-sm text-left text-xs space-y-2">
+                    <p class="text-obsidian-400 uppercase tracking-widest text-[9px] font-semibold">Resumo do Encontro</p>
+                    <div class="flex justify-between text-white">
+                        <span>Dia: <strong x-text="formatDate(bookingState.date)"></strong></span>
+                        <span>Hora: <strong x-text="bookingState.time + 'h'"></strong></span>
+                    </div>
+                    <div class="flex justify-between text-gold-300">
+                        <span>Atendimento Privativo</span>
+                        <span x-text="'R$ ' + totalPrice"></span>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button @click="closeSuccessModalAndReset()" class="w-full bg-gold-400 hover:bg-gold-500 text-obsidian-900 font-semibold tracking-widest text-xs uppercase py-3.5 rounded-sm transition-all shadow-md">
+                        Voltar ao Portal
+                    </button>
+                    <a :href="'https://wa.me/5562981816251?text=Olá, acabei de agendar no L&M Atelier para o dia ' + formatDate(bookingState.date) + ' às ' + bookingState.time + 'h.'" target="_blank" class="block w-full border border-obsidian-700 hover:border-gold-300 text-white font-medium tracking-widest text-xs uppercase py-3.5 rounded-sm transition-all text-center bg-obsidian-900/40">
+                        <i class="fa-brands fa-whatsapp mr-1.5 text-green-400"></i> Avisar por WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="appointmentsModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/90 z-50 backdrop-blur-md flex items-center justify-center p-6">
+            <div class="bg-obsidian-900 border border-obsidian-800 max-w-2xl w-full p-8 rounded-sm shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+                
+                <div class="flex justify-between items-center pb-4 border-b border-obsidian-800">
+                    <div class="space-y-1">
+                        <h3 class="font-serif text-2xl text-white">Seus Agendamentos</h3>
+                        <p class="text-xs text-obsidian-400">Histórico de reservas solicitadas a partir deste navegador.</p>
+                    </div>
+                    <button @click="appointmentsModalOpen = false" class="text-obsidian-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="space-y-4">
+                    <template x-if="savedAppointments.length === 0">
+                        <div class="text-center py-12 text-sm text-obsidian-400">
+                            Nenhum agendamento encontrado no seu histórico recente de navegação.
+                        </div>
+                    </template>
+
+                    <template x-for="(appt, index) in savedAppointments" :key="index">
+                        <div class="p-6 bg-obsidian-950 border border-obsidian-850 rounded-sm">
+                            <div class="space-y-3">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                    <div class="flex flex-col gap-2">
+                                        <span class="text-xs bg-gold-400 text-obsidian-900 font-semibold px-2 py-0.5 rounded-sm uppercase tracking-widest w-fit" x-text="formatDate(appt.date) + ' - ' + appt.time + 'h'"></span>
+                                        <span class="text-xs text-obsidian-300 font-medium" x-text="'Cliente: ' + appt.clientName"></span>
+                                    </div>
+                                    <button @click="cancelSavedAppointment(index)" class="text-xs text-red-400 hover:text-red-300 border border-red-400 hover:border-red-300 px-3 py-1.5 rounded-sm uppercase tracking-widest text-[10px] font-medium w-full sm:w-auto">
+                                        Cancelar
+                                    </button>
+                                </div>
+
+                                <div class="space-y-1.5 border-t border-obsidian-900 pt-3">
+                                    <span class="text-[10px] uppercase tracking-widest text-obsidian-400 font-bold block">Serviços Solicitados:</span>
+                                    <div class="space-y-1">
+                                        <template x-for="svc in appt.services">
+                                            <div class="flex justify-between text-xs text-obsidian-300">
+                                                <span x-text="svc.name"></span>
+                                                <span class="text-gold-400" x-text="'R$ ' + svc.price"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center text-xs text-obsidian-400 pt-3 border-t border-obsidian-900">
+                                    <span class="text-sm font-serif text-gold-300 font-bold" x-text="'R$ ' + appt.totalPrice"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="pt-4 border-t border-obsidian-800 flex justify-end">
+                    <button @click="appointmentsModalOpen = false" class="bg-obsidian-800 hover:bg-obsidian-700 text-white text-xs tracking-widest uppercase py-3 px-6 rounded-sm">
+                        Fechar Painel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast de Notificações Rápidas -->
+        <div x-show="toastShow" style="display: none;" x-transition class="fixed bottom-24 sm:bottom-6 right-6 bg-obsidian-900 border border-gold-400/30 text-white text-xs px-6 py-4 rounded-sm shadow-2xl z-50 flex items-center space-x-3 max-w-sm">
+            <span class="text-gold-400 text-base"><i class="fa-solid fa-circle-exclamation animate-pulse-subtle"></i></span>
+            <span x-text="toastMessage"></span>
+        </div>
+
+        <!-- Carrinho Flutuante (Floating Cart - Otimizado para Mobile e Desktop) -->
+        <div x-show="bookingState.services.length > 0" 
+             x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="opacity-0 translate-y-full scale-95" 
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100" 
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100" 
+             x-transition:leave-end="opacity-0 translate-y-full scale-95" 
+             class="fixed bottom-4 left-4 right-4 sm:bottom-8 sm:left-auto sm:right-8 sm:w-[420px] z-50 bg-obsidian-950 border border-obsidian-800 shadow-2xl rounded-2xl overflow-hidden">
+            
+            <div class="p-4 sm:p-5 flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-11 h-11 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-obsidian-900 shadow-lg relative">
+                            <i class="fa-solid fa-basket-shopping text-sm"></i>
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4.5 h-4.5 flex items-center justify-center rounded-full font-bold shadow-md border border-obsidian-900 px-1.5 py-0.5" x-text="bookingState.services.length"></span>
+                        </div>
+                        <div>
+                            <p class="text-[9px] sm:text-[10px] uppercase tracking-widest text-obsidian-400 font-semibold mb-0.5">Reserva em Andamento</p>
+                            <p class="text-white font-medium text-xs sm:text-sm"><span x-text="bookingState.services.length"></span> serviços incluídos</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] sm:text-[10px] uppercase tracking-widest text-obsidian-400 font-semibold mb-0.5">Total</p>
+                        <p class="text-lg sm:text-xl font-serif text-gold-400 font-bold leading-none" x-text="'R$ ' + totalPrice"></p>
+                    </div>
+                </div>
+                
+                <button @click="scrollToSection('agendador')" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 text-[11px] sm:text-xs tracking-widest uppercase font-bold py-3.5 sm:py-4 rounded-xl transition-all duration-300 flex justify-center items-center gap-2 active:scale-[0.98]">
+                    Finalizar Agendamento <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-obsidian-950 border-t border-obsidian-850 pt-20 pb-12 px-6 pb-28">
+                    <p class="flex justify-between"><span>Domingo:</span> <span class="text-obsidian-500">Fechado</span></p>
+                </div>
+            </div>
+
+            <!-- Coluna 3: Localização -->
+            <div class="space-y-4">
+                <h4 class="font-serif text-sm uppercase tracking-widest text-gold-400 font-semibold">O Endereço</h4>
+                <div class="space-y-2 text-xs text-obsidian-300 font-light leading-relaxed">
+                    <p class="text-white">Trindade - GO</p>
+                    <p>Atendimento Privativo com Horário Marcado</p>
+                    <p class="pt-2"><i class="fa-solid fa-phone mr-1.5 text-gold-400"></i> (62) 98181-6251</p>
+                    <p><i class="fa-brands fa-whatsapp mr-1.5 text-gold-400"></i> (62) 98181-6251</p>
+                </div>
+            </div>
+
+            <!-- Coluna 4: Reserva Exclusiva -->
+            <div class="space-y-4">
+                <h4 class="font-serif text-sm uppercase tracking-widest text-gold-400 font-semibold">Reserva Digital</h4>
+                <p class="text-xs text-obsidian-300 font-light leading-relaxed">
+                    Evite esperas de forma inteligente. Reserve o seu horário pelo nosso integrador digital integrado no site.
+                </p>
+                <a href="#agendador" @click="scrollToSection('agendador')" class="inline-block w-full text-center bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-semibold text-xs uppercase tracking-widest py-3 rounded-sm transition-all duration-300">
+                    Agendar Horário
+                </a>
+            </div>
+
+        </div>
+
+        <div class="max-w-7xl mx-auto pt-8 border-t border-obsidian-850 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-obsidian-400">
+            <p>&copy; 2026 L&M Atelier de Beleza S/A. Todos os direitos reservados.</p>
+            <div class="space-x-6">
+                <a href="#" class="hover:text-gold-300 transition-colors">Termos de Serviço</a>
+                <a href="#" class="hover:text-gold-300 transition-colors">Privacidade Estrita</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function bookingApp() {
+            return {
+                // Estado da UI
+                mobileMenuOpen: false,
+                servicesFilter: 'todos',
+                bookingStep: 1,
+                successModalOpen: false,
+                appointmentsModalOpen: false,
+                
+                // Sistema de Alertas (Toast)
+                toastShow: false,
+                toastMessage: '',
+                
+                // Banco de Dados Dinâmico de Agendamentos Recorrentes no LocalStorage
+                savedAppointments: [],
+                
+                // Estado do Agendamento Atual do Usuário
+                bookingState: {
+                    services: [],
+                    date: '',
+                    time: '',
+                    clientName: '',
+                    clientPhone: '',
+                    notes: ''
+                },
+
+                // Listas Reais de Serviços (Tabela de Preços)
+                lorenaServices: [
+                    { name: 'Axila', desc: 'Remoção com cera de alta qualidade.', price: 20, time: 15 },
+                    { name: 'Virilha completa', desc: 'Depilação íntima com máximo conforto e discrição.', price: 50, time: 35 },
+                    { name: 'Perna inteira', desc: 'Depilação completa das pernas.', price: 50, time: 45 },
+                    { name: 'Meia perna', desc: 'Depilação parcial da perna.', price: 30, time: 25 },
+                    { name: 'Rosto', desc: 'Remoção de pelos faciais com cera suave.', price: 20, time: 20 },
+                    { name: 'Buço', desc: 'Limpeza rápida e eficaz.', price: 10, time: 10 },
+                    { name: 'Braço inteiro', desc: 'Depilação completa dos braços.', price: 20, time: 25 },
+                    { name: 'Costas', desc: 'Depilação feminina das costas.', price: 20, time: 25 },
+                    { name: 'Sobrancelha', desc: 'Design e limpeza de sobrancelhas.', price: 15, time: 15 }
+                ],
+                marcioServices: [
+                    { name: 'Barba', desc: 'Cuidado masculino para a barba.', price: 20, time: 30 },
+                    { name: 'Corte', desc: 'Corte de cabelo masculino e infantil.', price: 20, time: 40 },
+                    { name: 'Pelos do nariz e orelha', desc: 'Remoção indolor e precisa.', price: 20, time: 15 },
+                    { name: 'Depilação costas', desc: 'Depilação com cera especial masculina.', price: 20, time: 25 },
+                    { name: 'Depilação peito', desc: 'Depilação com cera especial masculina.', price: 20, time: 25 },
+                    { name: 'Perna inteira', desc: 'Depilação completa das pernas.', price: 50, time: 45 },
+                    { name: 'Parte íntima', desc: 'Depilação com total discrição e higiene.', price: 50, time: 45 },
+                    { name: 'Combo depilação total', desc: 'Pacote completo: corpo total ou parcial (De R$160 por R$150).', price: 150, time: 120 }
+                ],
+                
+                // Horários Gerados Dinamicamente
+                availableSlots: [],
+
+                // Inicializar aplicação e resgatar agendamentos salvos
+                init() {
+                    this.loadSavedAppointments();
+                    // Setar data default para amanhã para evitar erros de passado
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    this.bookingState.date = tomorrow.toISOString().split('T')[0];
+                },
+
+                // Rolagem suave para seções específicas
+                scrollToSection(id) {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth' });
+                    }
+                },
+
+                // Lançar um aviso Toast rápido
+                triggerToast(message) {
+                    this.toastMessage = message;
+                    this.toastShow = true;
+                    setTimeout(() => {
+                        this.toastShow = false;
+                    }, 4000);
+                },
+
+                // Adicionar Serviço Selecionado ao Agendamento
+                addServiceToBooking(professional, name, price, duration) {
+                    // Prevenir duplicação no mesmo agendamento
+                    const alreadySelected = this.bookingState.services.some(svc => svc.name === name);
+                    if (alreadySelected) {
+                        this.triggerToast(`"${name}" já foi adicionado ao seu agendamento.`);
+                        return;
+                    }
+
+                    this.bookingState.services.push({
+                        professional,
+                        name,
+                        price,
+                        duration
+                    });
+
+                    this.triggerToast(`"${name}" adicionado. Role até o agendador para concluir.`);
+                },
+
+                // Remover Serviço do Agendamento
+                removeServiceFromBooking(index) {
+                    const removedSvcName = this.bookingState.services[index].name;
+                    this.bookingState.services.splice(index, 1);
+                    this.triggerToast(`"${removedSvcName}" removido.`);
+                },
+
+                // Getters para soma de valores
+                get totalPrice() {
+                    return this.bookingState.services.reduce((acc, svc) => acc + svc.price, 0);
+                },
+
+                get totalDuration() {
+                    return this.bookingState.services.reduce((acc, svc) => acc + svc.duration, 0);
+                },
+
+                // Gerador dinâmico de horários de folga e livre
+                generateAvailableSlots() {
+                    if (!this.bookingState.date) {
+                        this.availableSlots = [];
+                        return;
+                    }
+
+                    // Checa se é domingo ou segunda (dias fechados)
+                    const dateObj = new Date(this.bookingState.date + 'T00:00:00');
+                    const dayOfWeek = dateObj.getDay(); // 0 = Domingo, 1 = Segunda
+
+                    if (dayOfWeek === 0 || dayOfWeek === 1) {
+                        this.availableSlots = [];
+                        this.triggerToast("O L&M Atelier está fechado aos Domingos e Segundas. Selecione Terça a Sábado.");
+                        return;
+                    }
+
+                    // Gerar todos os horários de 09:00 a 17:30 em intervalos de 30 minutos
+                    const allSlots = [];
+                    for (let hour = 9; hour <= 17; hour++) {
+                        allSlots.push(String(hour).padStart(2, '0') + ':00');
+                        if (hour < 17) {
+                            allSlots.push(String(hour).padStart(2, '0') + ':30');
+                        }
+                    }
+                    allSlots.push('17:30');
+
+                    // Remover horários já agendados neste dia
+                    const bookedTimes = this.savedAppointments
+                        .filter(appt => appt.date === this.bookingState.date)
+                        .map(appt => appt.time);
+
+                    this.availableSlots = allSlots.filter(slot => !bookedTimes.includes(slot));
+                },
+
+                // Validar Etapa 3 e ir para Confirmação Final
+                validateStep3AndAdvance() {
+                    if (!this.bookingState.clientName.trim()) {
+                        this.triggerToast("Por favor, informe seu nome para contato.");
+                        return;
+                    }
+                    if (!this.bookingState.clientPhone.trim()) {
+                        this.triggerToast("Informe seu número de WhatsApp.");
+                        return;
+                    }
+                    this.bookingStep = 4;
+                },
+
+                // Executar gravação final do agendamento
+                confirmBookingFinal() {
+                    // Clonar objeto de agendamento corrente
+                    const newAppointment = {
+                        date: this.bookingState.date,
+                        time: this.bookingState.time,
+                        clientName: this.bookingState.clientName,
+                        clientPhone: this.bookingState.clientPhone,
+                        notes: this.bookingState.notes,
+                        services: [...this.bookingState.services],
+                        totalPrice: this.totalPrice
+                    };
+
+                    // Adicionar ao array e salvar no LocalStorage
+                    this.savedAppointments.push(newAppointment);
+                    localStorage.setItem('lm_atelier_appointments', JSON.stringify(this.savedAppointments));
+
+                    // Enviar notificação via WhatsApp
+                    this.sendWhatsAppNotification(newAppointment);
+
+                    // Abrir Modal de Sucesso
+                    this.successModalOpen = true;
+                },
+
+                // Carregar agendamentos do LocalStorage
+                loadSavedAppointments() {
+                    const stored = localStorage.getItem('lm_atelier_appointments');
+                    if (stored) {
+                        try {
+                            this.savedAppointments = JSON.parse(stored);
+                        } catch (e) {
+                            this.savedAppointments = [];
+                        }
+                    }
+                },
+
+                // Cancelar agendamento do histórico
+                cancelSavedAppointment(index) {
+                    const appt = this.savedAppointments[index];
+                    if (confirm(`Deseja realmente cancelar o agendamento do dia ${this.formatDate(appt.date)} às ${appt.time}h?`)) {
+                        // Enviar notificação de cancelamento via WhatsApp
+                        this.sendCancellationNotification(appt);
+                        
+                        // Remover do histórico
+                        this.savedAppointments.splice(index, 1);
+                        localStorage.setItem('lm_atelier_appointments', JSON.stringify(this.savedAppointments));
+                        this.triggerToast("Reserva cancelada com sucesso e aviso enviado.");
+                    }
+                },
+
+                // Formatar Data Visualmente para Pt-BR
+                formatDate(dateString) {
+                    if (!dateString) return '';
+                    const parts = dateString.split('-');
+                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                },
+
+                // Reset do Formulário após fechamento do Modal de Sucesso
+                closeSuccessModalAndReset() {
+                    this.successModalOpen = false;
+                    this.bookingStep = 1;
+                    
+                    // Resetar o estado do carrinho mantendo apenas as credenciais básicas do cliente
+                    this.bookingState.services = [];
+                    this.bookingState.time = '';
+                    this.bookingState.notes = '';
+                    
+                    // Scrollar de volta para o menu se necessário ou topo
+                    this.scrollToSection('experiencias');
+                },
+
+                // Abrir Painel de Gestão de Reservas Existentes
+                openAppointmentsModal() {
+                    this.loadSavedAppointments();
+                    this.appointmentsModalOpen = true;
+                },
+
+                // Enviar notificação via WhatsApp
+                sendWhatsAppNotification(appointment) {
+                    const servicesText = appointment.services.map(s => `${s.name} (R$ ${s.price})`).join(', ');
+                    const message = `Olá! Agendamento confirmado no L&M Atelier:\n\n📅 Data: ${this.formatDate(appointment.date)}\n⏰ Horário: ${appointment.time}h\n💇 Serviços: ${servicesText}\n💰 Total: R$ ${appointment.totalPrice}\n\nEstaremos te esperando com a melhor experiência!`;
+                    const whatsappURL = `https://wa.me/5562981816251?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappURL, '_blank');
+                }
+            };
+        }
+    </script>
+
+</body>
+</html>
