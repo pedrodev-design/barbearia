@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo | L&M Atelier</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { serif: ['"Playfair Display"', 'serif'], sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        gold: { 300: '#CED4DA', 400: '#C99E67', 500: '#B08856', 600: '#947248' },
+                        obsidian: { 300: '#A1A3AB', 400: '#71757F', 500: '#4E525E', 700: '#2A2B32', 800: '#15161A', 850: '#101114', 900: '#0B0C0E', 950: '#050607' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0B0C0E; color: #F4F4F4; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0B0C0E; }
+        ::-webkit-scrollbar-thumb { background: #2A2B32; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #C99E67; }
+    </style>
+</head>
+<body x-data="adminApp()" class="antialiased min-h-screen flex flex-col">
+
+    <!-- Login Screen -->
+    <div x-show="!isAuthenticated" class="flex-grow flex items-center justify-center p-6">
+        <form @submit.prevent="login" class="bg-obsidian-900 border border-obsidian-800 p-8 rounded-sm shadow-2xl max-w-sm w-full space-y-6">
+            <div class="text-center">
+                <h1 class="font-serif text-3xl text-white">L&M Admin</h1>
+                <p class="text-xs text-obsidian-400 mt-2 tracking-widest uppercase">Acesso Restrito</p>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-xs uppercase tracking-widest text-obsidian-300">Senha de Acesso</label>
+                <input type="password" x-model="password" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+            </div>
+            <p x-show="loginError" class="text-red-400 text-xs text-center" x-text="loginError"></p>
+            <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-bold uppercase tracking-widest text-xs py-3 rounded-sm transition-colors">Entrar</button>
+        </form>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div x-show="isAuthenticated" style="display: none;" class="flex-grow flex flex-col md:flex-row h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 bg-obsidian-900 border-r border-obsidian-850 flex flex-col h-full shrink-0">
+            <div class="p-6 border-b border-obsidian-850">
+                <h1 class="font-serif text-xl text-white">L&M Atelier</h1>
+                <p class="text-[10px] text-gold-400 uppercase tracking-widest">Painel de Gestão</p>
+            </div>
+            <nav class="flex-grow overflow-y-auto py-4">
+                <button @click="currentTab = 'services'" :class="currentTab === 'services' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3">
+                    <i class="fa-solid fa-list-ul w-4 text-center"></i> Serviços
+                </button>
+                <button @click="currentTab = 'appointments'" :class="currentTab === 'appointments' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3">
+                    <i class="fa-solid fa-calendar-check w-4 text-center"></i> Histórico
+                </button>
+                <button @click="currentTab = 'reviews'" :class="currentTab === 'reviews' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3">
+                    <i class="fa-solid fa-star w-4 text-center"></i> Avaliações
+                </button>
+                <button @click="currentTab = 'gallery'" :class="currentTab === 'gallery' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3">
+                    <i class="fa-solid fa-images w-4 text-center"></i> Galeria
+                </button>
+                <button @click="currentTab = 'messages'" :class="currentTab === 'messages' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3 relative">
+                    <i class="fa-solid fa-envelope w-4 text-center"></i> Fale Conosco
+                </button>
+            </nav>
+            <div class="p-6 border-t border-obsidian-850">
+                <button @click="logout" class="text-xs text-obsidian-400 hover:text-white uppercase tracking-widest w-full text-left"><i class="fa-solid fa-sign-out-alt mr-2"></i> Sair</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow overflow-y-auto p-6 lg:p-10 bg-obsidian-950">
+            
+            <!-- SERVICES TAB -->
+            <div x-show="currentTab === 'services'" class="space-y-8">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="font-serif text-3xl text-white">Serviços e Preços</h2>
+                        <p class="text-xs text-obsidian-400">Gerencie o menu de experiências</p>
+                    </div>
+                    <button @click="openServiceModal()" class="bg-gold-500 hover:bg-gold-600 text-obsidian-900 px-4 py-2 text-xs uppercase tracking-widest font-bold rounded-sm">+ Novo</button>
+                </div>
+
+                <div class="space-y-6">
+                    <template x-for="category in ['lorena', 'marcio']" :key="category">
+                        <div>
+                            <h3 class="font-serif text-xl text-gold-400 capitalize mb-4" x-text="category"></h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <template x-for="(service, idx) in services[category]" :key="service.id || idx">
+                                    <div class="bg-obsidian-900 border border-obsidian-800 p-4 rounded-sm flex justify-between items-center gap-4">
+                                        <div class="space-y-1">
+                                            <h4 class="text-white font-medium text-sm" x-text="service.name"></h4>
+                                            <p class="text-xs text-obsidian-400" x-text="service.desc"></p>
+                                            <p class="text-xs text-gold-400 font-semibold pt-1">R$ <span x-text="service.price"></span> <span class="text-obsidian-500 font-normal">| <span x-text="service.time"></span> min</span></p>
+                                        </div>
+                                        <div class="flex flex-col gap-2 shrink-0">
+                                            <button @click="editService(category, idx)" class="text-xs text-obsidian-300 hover:text-white bg-obsidian-800 px-3 py-1.5 rounded-sm"><i class="fa-solid fa-pen"></i></button>
+                                            <button @click="deleteService(category, idx)" class="text-xs text-red-400 hover:text-red-300 bg-obsidian-800 px-3 py-1.5 rounded-sm"><i class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- APPOINTMENTS TAB -->
+            <div x-show="currentTab === 'appointments'" class="space-y-8">
+                <div>
+                    <h2 class="font-serif text-3xl text-white">Histórico de Atendimentos</h2>
+                    <p class="text-xs text-obsidian-400">Atendimentos finalizados (cancelados não são armazenados)</p>
+                </div>
+
+                <!-- Complete an appointment from active ones logic -->
+                <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm space-y-4">
+                    <h3 class="text-sm font-semibold text-gold-400 uppercase tracking-widest">Atendimentos Ativos (Pendentes)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-obsidian-800 text-obsidian-400 text-xs">
+                                    <th class="pb-2">Data/Hora</th>
+                                    <th class="pb-2">Cliente</th>
+                                    <th class="pb-2">Serviços</th>
+                                    <th class="pb-2">Valor</th>
+                                    <th class="pb-2 text-right">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white">
+                                <template x-for="(appt, idx) in activeAppointments" :key="idx">
+                                    <tr class="border-b border-obsidian-850">
+                                        <td class="py-3 text-xs" x-text="formatDate(appt.date) + ' ' + appt.time + 'h'"></td>
+                                        <td class="py-3" x-text="appt.clientName"></td>
+                                        <td class="py-3 text-xs text-obsidian-300">
+                                            <span x-text="appt.services.map(s => s.name).join(', ')"></span>
+                                        </td>
+                                        <td class="py-3 text-gold-400 font-semibold" x-text="'R$ ' + appt.totalPrice"></td>
+                                        <td class="py-3 text-right">
+                                            <button @click="markAsCompleted(idx)" class="text-[10px] bg-green-500/20 text-green-400 px-3 py-1.5 rounded-sm uppercase tracking-widest font-bold hover:bg-green-500/30">Concluir</button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <tr x-show="activeAppointments.length === 0"><td colspan="5" class="py-6 text-center text-obsidian-500">Nenhum atendimento ativo.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm space-y-4">
+                    <h3 class="text-sm font-semibold text-gold-400 uppercase tracking-widest">Histórico (Concluídos)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-obsidian-800 text-obsidian-400 text-xs">
+                                    <th class="pb-2">Data/Hora</th>
+                                    <th class="pb-2">Cliente</th>
+                                    <th class="pb-2">Serviços</th>
+                                    <th class="pb-2">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-white">
+                                <template x-for="(appt, idx) in completedAppointments" :key="idx">
+                                    <tr class="border-b border-obsidian-850">
+                                        <td class="py-3 text-xs" x-text="formatDate(appt.date) + ' ' + appt.time + 'h'"></td>
+                                        <td class="py-3" x-text="appt.clientName"></td>
+                                        <td class="py-3 text-xs text-obsidian-300">
+                                            <span x-text="appt.services.map(s => s.name).join(', ')"></span>
+                                        </td>
+                                        <td class="py-3 text-gold-400 font-semibold" x-text="'R$ ' + appt.totalPrice"></td>
+                                    </tr>
+                                </template>
+                                <tr x-show="completedAppointments.length === 0"><td colspan="4" class="py-6 text-center text-obsidian-500">Nenhum atendimento no histórico.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REVIEWS TAB -->
+            <div x-show="currentTab === 'reviews'" class="space-y-8">
+                <div>
+                    <h2 class="font-serif text-3xl text-white">Gestão de Avaliações</h2>
+                    <p class="text-xs text-obsidian-400">Aprove, oculte ou exclua depoimentos</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <template x-for="(review, idx) in reviews" :key="review.id">
+                        <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm relative">
+                            <div class="absolute top-6 right-6 flex gap-2">
+                                <button @click="toggleReviewStatus(idx)" class="text-[10px] uppercase tracking-widest px-2 py-1 border rounded-sm font-bold" :class="review.status === 'approved' ? 'border-green-500 text-green-500' : (review.status === 'hidden' ? 'border-obsidian-500 text-obsidian-500' : 'border-yellow-500 text-yellow-500')">
+                                    <span x-text="review.status === 'approved' ? 'Aprovado' : (review.status === 'hidden' ? 'Oculto' : 'Pendente')"></span>
+                                </button>
+                                <button @click="deleteReview(idx)" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                            
+                            <div class="text-gold-400 text-xs mb-3">
+                                <template x-for="i in review.rating"><i class="fa-solid fa-star"></i></template>
+                                <template x-for="i in 5 - review.rating"><i class="fa-regular fa-star"></i></template>
+                            </div>
+                            <p class="text-sm text-obsidian-300 italic mb-4" x-text="review.comment"></p>
+                            <p class="text-white text-xs font-semibold" x-text="review.name"></p>
+                            <p class="text-[10px] text-obsidian-400" x-text="review.role"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- GALLERY TAB -->
+            <div x-show="currentTab === 'gallery'" class="space-y-8">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="font-serif text-3xl text-white">Galeria de Imagens</h2>
+                        <p class="text-xs text-obsidian-400">Adicione ou remova fotos do ambiente</p>
+                    </div>
+                    <label class="bg-gold-500 hover:bg-gold-600 text-obsidian-900 px-4 py-2 text-xs uppercase tracking-widest font-bold rounded-sm cursor-pointer inline-block">
+                        + Upload Foto
+                        <input type="file" accept="image/*" class="hidden" @change="handleImageUpload">
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <template x-for="(img, idx) in gallery" :key="idx">
+                        <div class="relative group aspect-square rounded-sm overflow-hidden border border-obsidian-800">
+                            <img :src="img" class="w-full h-full object-cover">
+                            <button @click="deleteGalleryImage(idx)" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg hover:bg-red-600"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </template>
+                    <div x-show="gallery.length === 0" class="col-span-full py-12 text-center text-obsidian-500">Nenhuma foto na galeria.</div>
+                </div>
+            </div>
+
+            <!-- MESSAGES TAB -->
+            <div x-show="currentTab === 'messages'" class="space-y-8">
+                <div>
+                    <h2 class="font-serif text-3xl text-white">Caixa de Entrada</h2>
+                    <p class="text-xs text-obsidian-400">Mensagens enviadas pelo Fale Conosco</p>
+                </div>
+
+                <div class="space-y-4">
+                    <template x-for="(msg, idx) in messages" :key="msg.id">
+                        <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm relative">
+                            <button @click="deleteMessage(idx)" class="absolute top-6 right-6 text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>
+                            
+                            <h3 class="text-gold-400 font-serif text-xl mb-1" x-text="msg.subject"></h3>
+                            <p class="text-xs text-obsidian-500 mb-4" x-text="formatDate(msg.date.split('T')[0]) + ' às ' + msg.date.split('T')[1].substring(0,5)"></p>
+                            
+                            <p class="text-sm text-obsidian-300 leading-relaxed mb-6" x-text="msg.message"></p>
+                            
+                            <div class="flex gap-6 border-t border-obsidian-850 pt-4 text-xs">
+                                <div><span class="text-obsidian-500 block uppercase tracking-widest text-[9px]">Nome</span> <span class="text-white" x-text="msg.name"></span></div>
+                                <div><span class="text-obsidian-500 block uppercase tracking-widest text-[9px]">E-mail</span> <span class="text-white" x-text="msg.email"></span></div>
+                                <div><span class="text-obsidian-500 block uppercase tracking-widest text-[9px]">Telefone</span> <span class="text-white" x-text="msg.phone"></span></div>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="messages.length === 0" class="py-12 text-center text-obsidian-500">Nenhuma mensagem na caixa de entrada.</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Service Modal -->
+    <div x-show="serviceModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/90 z-50 flex items-center justify-center p-6 backdrop-blur-md">
+        <div class="bg-obsidian-900 border border-obsidian-800 p-8 rounded-sm w-full max-w-md relative">
+            <button @click="serviceModalOpen = false" class="absolute top-4 right-4 text-obsidian-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="font-serif text-2xl text-white mb-6" x-text="isEditing ? 'Editar Serviço' : 'Novo Serviço'"></h3>
+            
+            <form @submit.prevent="saveService" class="space-y-4">
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-widest text-obsidian-300">Profissional / Categoria</label>
+                    <select x-model="editingService.category" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors" :disabled="isEditing">
+                        <option value="lorena">Lorena (Estética & Feminino)</option>
+                        <option value="marcio">Márcio (Barber & Masculino)</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-widest text-obsidian-300">Nome do Serviço</label>
+                    <input type="text" x-model="editingService.name" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-widest text-obsidian-300">Descrição</label>
+                    <input type="text" x-model="editingService.desc" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Preço (R$)</label>
+                        <input type="number" x-model="editingService.price" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Tempo (min)</label>
+                        <input type="number" x-model="editingService.time" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-bold uppercase tracking-widest text-xs py-4 rounded-sm transition-colors mt-6">
+                    Salvar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function adminApp() {
+            return {
+                isAuthenticated: false,
+                password: '',
+                loginError: '',
+                currentTab: 'services',
+                
+                services: { lorena: [], marcio: [] },
+                activeAppointments: [],
+                completedAppointments: [],
+                reviews: [],
+                gallery: [],
+                messages: [],
+                
+                serviceModalOpen: false,
+                isEditing: false,
+                editingIdx: null,
+                editingService: { category: 'lorena', name: '', desc: '', price: 0, time: 0 },
+
+                login() {
+                    if (this.password === '121518') {
+                        this.isAuthenticated = true;
+                        this.loginError = '';
+                        this.loadData();
+                    } else {
+                        this.loginError = 'Senha incorreta.';
+                    }
+                },
+                logout() {
+                    this.isAuthenticated = false;
+                    this.password = '';
+                },
+
+                loadData() {
+                    this.services = JSON.parse(localStorage.getItem('lm_services')) || { lorena: [], marcio: [] };
+                    this.activeAppointments = JSON.parse(localStorage.getItem('lm_atelier_appointments')) || [];
+                    this.completedAppointments = JSON.parse(localStorage.getItem('lm_completed_appointments')) || [];
+                    this.reviews = JSON.parse(localStorage.getItem('lm_reviews')) || [];
+                    this.gallery = JSON.parse(localStorage.getItem('lm_gallery')) || [];
+                    this.messages = JSON.parse(localStorage.getItem('lm_messages')) || [];
+                    
+                    // Sort reviews and messages by newest
+                    this.reviews.sort((a,b) => new Date(b.date) - new Date(a.date));
+                    this.messages.sort((a,b) => new Date(b.date) - new Date(a.date));
+                },
+
+                // Services
+                openServiceModal() {
+                    this.isEditing = false;
+                    this.editingService = { category: 'lorena', name: '', desc: '', price: '', time: '' };
+                    this.serviceModalOpen = true;
+                },
+                editService(category, idx) {
+                    this.isEditing = true;
+                    this.editingIdx = idx;
+                    this.editingService = { ...this.services[category][idx], category };
+                    this.serviceModalOpen = true;
+                },
+                saveService() {
+                    const cat = this.editingService.category;
+                    const srv = {
+                        id: this.isEditing ? this.services[cat][this.editingIdx].id : Date.now(),
+                        name: this.editingService.name,
+                        desc: this.editingService.desc,
+                        price: parseInt(this.editingService.price),
+                        time: parseInt(this.editingService.time)
+                    };
+                    
+                    if (this.isEditing) {
+                        this.services[cat][this.editingIdx] = srv;
+                    } else {
+                        this.services[cat].push(srv);
+                    }
+                    localStorage.setItem('lm_services', JSON.stringify(this.services));
+                    this.serviceModalOpen = false;
+                },
+                deleteService(category, idx) {
+                    if (confirm("Deseja realmente excluir este serviço?")) {
+                        this.services[category].splice(idx, 1);
+                        localStorage.setItem('lm_services', JSON.stringify(this.services));
+                    }
+                },
+
+                // Appointments
+                markAsCompleted(idx) {
+                    if (confirm("Marcar este atendimento como concluído?")) {
+                        const appt = this.activeAppointments[idx];
+                        this.completedAppointments.push(appt);
+                        this.activeAppointments.splice(idx, 1);
+                        
+                        localStorage.setItem('lm_atelier_appointments', JSON.stringify(this.activeAppointments));
+                        localStorage.setItem('lm_completed_appointments', JSON.stringify(this.completedAppointments));
+                    }
+                },
+
+                // Reviews
+                toggleReviewStatus(idx) {
+                    const r = this.reviews[idx];
+                    if (r.status === 'pending' || r.status === 'hidden') r.status = 'approved';
+                    else if (r.status === 'approved') r.status = 'hidden';
+                    localStorage.setItem('lm_reviews', JSON.stringify(this.reviews));
+                },
+                deleteReview(idx) {
+                    if(confirm("Excluir esta avaliação?")) {
+                        this.reviews.splice(idx, 1);
+                        localStorage.setItem('lm_reviews', JSON.stringify(this.reviews));
+                    }
+                },
+
+                // Messages
+                deleteMessage(idx) {
+                    if(confirm("Excluir esta mensagem?")) {
+                        this.messages.splice(idx, 1);
+                        localStorage.setItem('lm_messages', JSON.stringify(this.messages));
+                    }
+                },
+
+                // Gallery
+                handleImageUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.gallery.unshift(e.target.result);
+                        localStorage.setItem('lm_gallery', JSON.stringify(this.gallery));
+                    };
+                    reader.readAsDataURL(file);
+                },
+                deleteGalleryImage(idx) {
+                    if(confirm("Remover imagem da galeria?")) {
+                        this.gallery.splice(idx, 1);
+                        localStorage.setItem('lm_gallery', JSON.stringify(this.gallery));
+                    }
+                },
+
+                formatDate(dateString) {
+                    if (!dateString) return '';
+                    const parts = dateString.split('-');
+                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+            };
+        }
+    </script>
+</body>
+</html>
