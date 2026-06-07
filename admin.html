@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -231,7 +233,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     <template x-for="(img, idx) in gallery" :key="idx">
                         <div class="relative group aspect-square rounded-sm overflow-hidden border border-obsidian-800">
-                            <img :src="img" class="w-full h-full object-cover">
+                            <img :src="img.url" class="w-full h-full object-cover">
                             <button @click="deleteGalleryImage(idx)" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg hover:bg-red-600"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </template>
@@ -343,17 +345,27 @@
                     this.password = '';
                 },
 
-                loadData() {
-                    this.services = JSON.parse(localStorage.getItem('lm_services')) || { lorena: [], marcio: [] };
-                    this.activeAppointments = JSON.parse(localStorage.getItem('lm_atelier_appointments')) || [];
-                    this.completedAppointments = JSON.parse(localStorage.getItem('lm_completed_appointments')) || [];
-                    this.reviews = JSON.parse(localStorage.getItem('lm_reviews')) || [];
-                    this.gallery = JSON.parse(localStorage.getItem('lm_gallery')) || [];
-                    this.messages = JSON.parse(localStorage.getItem('lm_messages')) || [];
+                async loadData() {
+                    const { data: services } = await supabase.from('services').select('*');
+                    if (services) {
+                        this.services.lorena = services.filter(s => s.category === 'lorena');
+                        this.services.marcio = services.filter(s => s.category === 'marcio');
+                    }
                     
-                    // Sort reviews and messages by newest
-                    this.reviews.sort((a,b) => new Date(b.date) - new Date(a.date));
-                    this.messages.sort((a,b) => new Date(b.date) - new Date(a.date));
+                    const { data: appointments } = await supabase.from('appointments').select('*').order('created_at', { ascending: false });
+                    if (appointments) {
+                        this.activeAppointments = appointments.filter(a => a.status === 'scheduled');
+                        this.completedAppointments = appointments.filter(a => a.status === 'completed');
+                    }
+                    
+                    const { data: reviews } = await supabase.from('reviews').select('*').order('date', { ascending: false });
+                    if (reviews) this.reviews = reviews;
+                    
+                    const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+                    if (gallery) this.gallery = gallery; // Now objects with {id, url}
+                    
+                    const { data: messages } = await supabase.from('messages').select('*').order('date', { ascending: false });
+                    if (messages) this.messages = messages;
                 },
 
                 // Services
@@ -368,10 +380,10 @@
                     this.editingService = { ...this.services[category][idx], category };
                     this.serviceModalOpen = true;
                 },
-                saveService() {
+                async saveService() {
                     const cat = this.editingService.category;
-                    const srv = {
-                        id: this.isEditing ? this.services[cat][this.editingIdx].id : Date.now(),
+                    const payload = {
+                        category: cat,
                         name: this.editingService.name,
                         desc: this.editingService.desc,
                         price: parseInt(this.editingService.price),
@@ -379,51 +391,56 @@
                     };
                     
                     if (this.isEditing) {
-                        this.services[cat][this.editingIdx] = srv;
+                        const srvId = this.services[cat][this.editingIdx].id;
+                        await supabase.from('services').update(payload).eq('id', srvId);
                     } else {
-                        this.services[cat].push(srv);
+                        await supabase.from('services').insert([payload]);
                     }
-                    localStorage.setItem('lm_services', JSON.stringify(this.services));
+                    
+                    await this.loadData();
                     this.serviceModalOpen = false;
                 },
-                deleteService(category, idx) {
+                async deleteService(category, idx) {
                     if (confirm("Deseja realmente excluir este serviço?")) {
-                        this.services[category].splice(idx, 1);
-                        localStorage.setItem('lm_services', JSON.stringify(this.services));
+                        const srvId = this.services[category][idx].id;
+                        await supabase.from('services').delete().eq('id', srvId);
+                        await this.loadData();
                     }
                 },
 
                 // Appointments
-                markAsCompleted(idx) {
+                async markAsCompleted(idx) {
                     if (confirm("Marcar este atendimento como concluído?")) {
                         const appt = this.activeAppointments[idx];
-                        this.completedAppointments.push(appt);
-                        this.activeAppointments.splice(idx, 1);
-                        
-                        localStorage.setItem('lm_atelier_appointments', JSON.stringify(this.activeAppointments));
-                        localStorage.setItem('lm_completed_appointments', JSON.stringify(this.completedAppointments));
+                        await supabase.from('appointments').update({ status: 'completed' }).eq('id', appt.id);
+                        await this.loadData();
                     }
                 },
 
                 // Reviews
-                toggleReviewStatus(idx) {
+                async toggleReviewStatus(idx) {
                     const r = this.reviews[idx];
-                    if (r.status === 'pending' || r.status === 'hidden') r.status = 'approved';
-                    else if (r.status === 'approved') r.status = 'hidden';
-                    localStorage.setItem('lm_reviews', JSON.stringify(this.reviews));
+                    let newStatus = 'approved';
+                    if (r.status === 'pending' || r.status === 'hidden') newStatus = 'approved';
+                    else if (r.status === 'approved') newStatus = 'hidden';
+                    
+                    await supabase.from('reviews').update({ status: newStatus }).eq('id', r.id);
+                    await this.loadData();
                 },
-                deleteReview(idx) {
+                async deleteReview(idx) {
                     if(confirm("Excluir esta avaliação?")) {
-                        this.reviews.splice(idx, 1);
-                        localStorage.setItem('lm_reviews', JSON.stringify(this.reviews));
+                        const r = this.reviews[idx];
+                        await supabase.from('reviews').delete().eq('id', r.id);
+                        await this.loadData();
                     }
                 },
 
                 // Messages
-                deleteMessage(idx) {
+                async deleteMessage(idx) {
                     if(confirm("Excluir esta mensagem?")) {
-                        this.messages.splice(idx, 1);
-                        localStorage.setItem('lm_messages', JSON.stringify(this.messages));
+                        const m = this.messages[idx];
+                        await supabase.from('messages').delete().eq('id', m.id);
+                        await this.loadData();
                     }
                 },
 
@@ -432,16 +449,18 @@
                     const file = event.target.files[0];
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = (e) => {
-                        this.gallery.unshift(e.target.result);
-                        localStorage.setItem('lm_gallery', JSON.stringify(this.gallery));
+                    reader.onload = async (e) => {
+                        const base64Url = e.target.result;
+                        await supabase.from('gallery').insert([{ url: base64Url }]);
+                        await this.loadData();
                     };
                     reader.readAsDataURL(file);
                 },
-                deleteGalleryImage(idx) {
+                async deleteGalleryImage(idx) {
                     if(confirm("Remover imagem da galeria?")) {
-                        this.gallery.splice(idx, 1);
-                        localStorage.setItem('lm_gallery', JSON.stringify(this.gallery));
+                        const g = this.gallery[idx];
+                        await supabase.from('gallery').delete().eq('id', g.id);
+                        await this.loadData();
                     }
                 },
 

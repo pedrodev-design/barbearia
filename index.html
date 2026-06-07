@@ -19,6 +19,11 @@
     <!-- Alpine.js para reatividade premium no agendamento e interações dinâmicas -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- Supabase e Cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+
+
     <!-- Configuração de temas de cores personalizados -->
     <script>
         tailwind.config = {
@@ -540,16 +545,26 @@
                             <!-- Escolha dos Slots de Hora -->
                             <div class="space-y-4">
                                 <label class="block text-xs uppercase tracking-widest text-obsidian-300">Horários Disponíveis:</label>
-                                
-                                <div class="grid grid-cols-3 gap-2.5 max-h-[220px] overflow-y-auto pr-1">
+
+                                <!-- Loading -->
+                                <div x-show="slotsLoading" class="flex items-center justify-center py-8 gap-3 text-obsidian-400 text-xs">
+                                    <i class="fa-solid fa-spinner fa-spin text-gold-400"></i>
+                                    <span>Verificando disponibilidade...</span>
+                                </div>
+
+                                <!-- Grid de slots -->
+                                <div x-show="!slotsLoading" class="grid grid-cols-3 gap-2.5 max-h-[220px] overflow-y-auto pr-1">
                                     <template x-for="time in availableSlots" :key="time">
                                         <button @click="bookingState.time = time" :class="bookingState.time === time ? 'bg-gold-400 text-obsidian-900 border-gold-400' : 'bg-obsidian-950 text-obsidian-300 border-obsidian-850 hover:border-gold-400'" class="py-2.5 px-3 text-xs tracking-wider border rounded-sm transition-all duration-300 font-medium">
                                             <span x-text="time"></span>
                                         </button>
                                     </template>
                                 </div>
-                                <div x-show="availableSlots.length === 0" class="text-center py-6 text-xs text-obsidian-500 italic">
-                                    Nenhum horário disponível para esta data ou selecione um dia primeiro.
+
+                                <!-- Mensagem vazia -->
+                                <div x-show="!slotsLoading && availableSlots.length === 0" class="text-center py-6 text-xs text-obsidian-500 italic">
+                                    <span x-show="bookingState.date">Todos os horários deste dia estão reservados. Tente outra data.</span>
+                                    <span x-show="!bookingState.date">Selecione uma data para ver os horários disponíveis.</span>
                                 </div>
                             </div>
                         </div>
@@ -765,81 +780,135 @@
         </section>
 
         <section id="depoimentos" class="py-24 px-6 max-w-7xl mx-auto">
-            <div class="text-center max-w-xl mx-auto mb-16 space-y-4">
+            <div class="text-center max-w-xl mx-auto mb-12 space-y-4">
                 <span class="text-gold-400 text-xs tracking-widest uppercase font-medium">A Voz da Confiança</span>
                 <h2 class="font-serif text-3xl sm:text-5xl text-white">Relatos daqueles que vivem a experiência</h2>
-                <div class="w-16 h-[1px] bg-gold-400 mx-auto mt-4"></div>
+                <div class="w-16 h-[1px] bg-gold-400 mx-auto mt-4 mb-6"></div>
+                <button @click="reviewModalOpen = true" class="bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-semibold tracking-widest text-xs uppercase py-3 px-8 rounded-sm shadow-md transition-all inline-block">Deixar uma Avaliação</button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                
-                <!-- Depoimento 1 -->
-                <div class="bg-obsidian-900 p-8 border border-obsidian-850 rounded-sm relative">
-                    <div class="text-gold-400 mb-4 text-xs">
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="text-obsidian-300 font-light text-sm italic leading-relaxed mb-6">
-                        "Estou acostumada a fazer depilação e a Lorena é simplesmente genial. A cera que ela desenvolve não me dá foliculite e ela tem uma delicadeza que torna o momento super tolerável. O estúdio é impecável em termos de privacidade."
-                    </p>
-                    <div class="flex items-center space-x-3 border-t border-obsidian-850 pt-4">
-                        <div class="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center font-serif text-xs text-gold-400">AM</div>
-                        <div>
-                            <span class="text-white text-xs font-semibold block">Ana Maria G.</span>
-                            <span class="text-[10px] text-obsidian-400">Cliente Studio Lorena</span>
+                <template x-for="review in approvedReviews" :key="review.id">
+                    <div class="bg-obsidian-900 p-8 border border-obsidian-850 rounded-sm relative">
+                        <div class="text-gold-400 mb-4 text-xs">
+                            <template x-for="i in review.rating"><i class="fa-solid fa-star"></i></template>
+                            <template x-for="i in 5 - review.rating"><i class="fa-regular fa-star"></i></template>
+                        </div>
+                        <p class="text-obsidian-300 font-light text-sm italic leading-relaxed mb-6" x-text="review.comment"></p>
+                        <div class="flex items-center space-x-3 border-t border-obsidian-850 pt-4">
+                            <div class="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center font-serif text-xs text-gold-400" x-text="review.initials"></div>
+                            <div>
+                                <span class="text-white text-xs font-semibold block" x-text="review.name"></span>
+                                <span class="text-[10px] text-obsidian-400" x-text="review.role"></span>
+                            </div>
                         </div>
                     </div>
+                </template>
+                <div x-show="approvedReviews.length === 0" class="col-span-1 md:col-span-2 lg:col-span-3 text-center text-obsidian-400 py-12">
+                    Nenhuma avaliação aprovada no momento. Seja o primeiro a avaliar!
                 </div>
-
-                <!-- Depoimento 2 -->
-                <div class="bg-obsidian-900 p-8 border border-obsidian-850 rounded-sm relative">
-                    <div class="text-gold-400 mb-4 text-xs">
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="text-obsidian-300 font-light text-sm italic leading-relaxed mb-6">
-                        "Encontrei no Márcio o barbeiro ideal. Ele tem uma precisão na tesoura incrível para cortes clássicos e a barboterapia é de dormir de tão relaxante. Faço depilação no peito com ele e a discrição e eficácia são absolutas."
-                    </p>
-                    <div class="flex items-center space-x-3 border-t border-obsidian-850 pt-4">
-                        <div class="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center font-serif text-xs text-gold-400">RC</div>
-                        <div>
-                            <span class="text-white text-xs font-semibold block">Rodrigo C.</span>
-                            <span class="text-[10px] text-obsidian-400">Cliente Márcio Lounge</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Depoimento 3 -->
-                <div class="bg-obsidian-900 p-8 border border-obsidian-850 rounded-sm relative">
-                    <div class="text-gold-400 mb-4 text-xs">
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                    </div>
-                    <p class="text-obsidian-300 font-light text-sm italic leading-relaxed mb-6">
-                        "O L&M Atelier é diferenciado. O agendamento é super fluido e quando você chega é recebida de forma exclusiva com um bom espumante brut. Lorena cuidou do meu design de sobrancelhas e o resultado foi espetacular."
-                    </p>
-                    <div class="flex items-center space-x-3 border-t border-obsidian-850 pt-4">
-                        <div class="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center font-serif text-xs text-gold-400">VS</div>
-                        <div>
-                            <span class="text-white text-xs font-semibold block">Valéria S.</span>
-                            <span class="text-[10px] text-obsidian-400">Cliente Estética Atelier</span>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </section>
 
-                <div x-show="successModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/90 z-50 backdrop-blur-md flex items-center justify-center p-6">
+        <!-- Galeria -->
+        <section id="galeria" class="py-24 px-6 max-w-7xl mx-auto border-t border-obsidian-850">
+            <div class="text-center max-w-xl mx-auto mb-16 space-y-4">
+                <span class="text-gold-400 text-xs tracking-widest uppercase font-medium">Nosso Espaço</span>
+                <h2 class="font-serif text-3xl sm:text-5xl text-white">Galeria de Fotos</h2>
+                <div class="w-16 h-[1px] bg-gold-400 mx-auto mt-4"></div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <template x-for="(img, idx) in gallery" :key="idx">
+                    <div @click="openGalleryModal(img)" class="cursor-pointer aspect-square bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800 relative group">
+                        <img :src="img" class="w-full h-full object-cover group-hover:scale-110 group-hover:opacity-75 transition-all duration-500">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <i class="fa-solid fa-expand text-2xl text-white drop-shadow-md"></i>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <div x-show="gallery.length === 0" class="text-center text-obsidian-400 py-12">
+                Nenhuma foto na galeria no momento.
+            </div>
+        </section>
+
+        <!-- Contato -->
+        <section id="contato" class="py-24 px-6 max-w-4xl mx-auto border-t border-obsidian-850">
+            <div class="text-center space-y-4 mb-12">
+                <span class="text-gold-400 text-xs tracking-widest uppercase font-medium">Fale Conosco</span>
+                <h2 class="font-serif text-3xl sm:text-5xl text-white">Envie sua Mensagem</h2>
+            </div>
+            <form @submit.prevent="submitContactForm" class="space-y-6 bg-obsidian-900 p-8 rounded-sm border border-obsidian-800">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Nome</label>
+                        <input type="text" x-model="contactForm.name" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Telefone</label>
+                        <input type="tel" x-model="contactForm.phone" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">E-mail</label>
+                        <input type="email" x-model="contactForm.email" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                </div>
+                <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Assunto</label>
+                        <input type="text" x-model="contactForm.subject" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                </div>
+                <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Mensagem</label>
+                        <textarea x-model="contactForm.message" required rows="4" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-semibold tracking-widest text-xs uppercase py-4 rounded-sm transition-all shadow-md flex justify-center items-center gap-2">
+                    Enviar Mensagem <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </section>
+
+        <!-- Review Modal -->
+        <div x-show="reviewModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/90 z-[60] backdrop-blur-md flex items-center justify-center p-6">
+            <div class="bg-obsidian-900 border border-obsidian-800 max-w-lg w-full p-8 rounded-sm relative">
+                <button @click="reviewModalOpen = false" class="absolute top-4 right-4 text-obsidian-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <h3 class="font-serif text-2xl text-white mb-6">Deixe sua Avaliação</h3>
+                <form @submit.prevent="submitReview" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Nome</label>
+                        <input type="text" x-model="reviewForm.name" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Serviço/Profissional Avaliado</label>
+                        <input type="text" x-model="reviewForm.role" placeholder="Ex: Cliente Studio Lorena" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Nota (1 a 5)</label>
+                        <select x-model="reviewForm.rating" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                            <option value="5">5 Estrelas - Excelente</option>
+                            <option value="4">4 Estrelas - Muito Bom</option>
+                            <option value="3">3 Estrelas - Bom</option>
+                            <option value="2">2 Estrelas - Regular</option>
+                            <option value="1">1 Estrela - Ruim</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Seu Relato</label>
+                        <textarea x-model="reviewForm.comment" required rows="3" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-semibold tracking-widest text-xs uppercase py-4 rounded-sm transition-all shadow-md mt-4">
+                        Enviar Avaliação
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Gallery Modal -->
+        <div x-show="galleryModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/95 z-[70] backdrop-blur-md flex items-center justify-center p-4 sm:p-10">
+            <button @click="galleryModalOpen = false" class="absolute top-6 right-6 text-white hover:text-gold-400 z-10"><i class="fa-solid fa-xmark text-3xl"></i></button>
+            <img :src="selectedGalleryImg" class="max-w-full max-h-full object-contain border border-obsidian-800 rounded-sm shadow-2xl">
+        </div>
+
+        <div x-show="successModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/90 z-50 backdrop-blur-md flex items-center justify-center p-6">
             <div class="bg-obsidian-900 border border-obsidian-800 max-w-lg w-full p-8 sm:p-12 text-center rounded-sm space-y-6 shadow-2xl relative">
                 <div class="w-16 h-16 rounded-full bg-gold-500/10 border border-gold-400 flex items-center justify-center text-gold-400 mx-auto text-2xl animate-float-slow">
                     <i class="fa-solid fa-champagne-glasses"></i>
@@ -1117,54 +1186,7 @@
     </footer>
 
     <script>
-        // Inicializar Banco de Dados Falso
-        function initDB() {
-            const defaultServices = {
-                lorena: [
-                    { id: 1, name: 'Axila', desc: 'Remoção com cera de alta qualidade.', price: 20, time: 15 },
-                    { id: 2, name: 'Virilha completa', desc: 'Depilação íntima com máximo conforto e discrição.', price: 50, time: 35 },
-                    { id: 3, name: 'Perna inteira', desc: 'Depilação completa das pernas.', price: 50, time: 45 },
-                    { id: 4, name: 'Meia perna', desc: 'Depilação parcial da perna.', price: 30, time: 25 },
-                    { id: 5, name: 'Rosto', desc: 'Remoção de pelos faciais com cera suave.', price: 20, time: 20 },
-                    { id: 6, name: 'Buço', desc: 'Limpeza rápida e eficaz.', price: 10, time: 10 },
-                    { id: 7, name: 'Braço inteiro', desc: 'Depilação completa dos braços.', price: 20, time: 25 },
-                    { id: 8, name: 'Costas', desc: 'Depilação feminina das costas.', price: 20, time: 25 },
-                    { id: 9, name: 'Sobrancelha', desc: 'Design e limpeza de sobrancelhas.', price: 15, time: 15 }
-                ],
-                marcio: [
-                    { id: 10, name: 'Barba', desc: 'Cuidado masculino para a barba.', price: 20, time: 30 },
-                    { id: 11, name: 'Corte', desc: 'Corte de cabelo masculino e infantil.', price: 20, time: 40 },
-                    { id: 12, name: 'Pelos do nariz e orelha', desc: 'Remoção indolor e precisa.', price: 20, time: 15 },
-                    { id: 13, name: 'Depilação costas', desc: 'Depilação com cera especial masculina.', price: 20, time: 25 },
-                    { id: 14, name: 'Depilação peito', desc: 'Depilação com cera especial masculina.', price: 20, time: 25 },
-                    { id: 15, name: 'Perna inteira', desc: 'Depilação completa das pernas.', price: 50, time: 45 },
-                    { id: 16, name: 'Parte íntima', desc: 'Depilação com total discrição e higiene.', price: 50, time: 45 },
-                    { id: 17, name: 'Combo depilação total', desc: 'Pacote completo: corpo total ou parcial.', price: 150, time: 120 },
-                    { id: 18, name: 'Matizador para Barba', desc: 'Realce a cor da sua barba.', price: 10, time: 15 },
-                    { id: 19, name: 'Mechas no Cabelo', desc: 'Estilo moderno e iluminado.', price: 50, time: 60 },
-                    { id: 20, name: 'Desenhos Freestyle', desc: 'Arte exclusiva em cortes.', price: 30, time: 30 }
-                ]
-            };
-
-            const defaultReviews = [
-                { id: 1, name: 'Ana Maria G.', role: 'Cliente Studio Lorena', rating: 5, comment: 'Estou acostumada a fazer depilação e a Lorena é simplesmente genial. A cera que ela desenvolve não me dá foliculite e ela tem uma delicadeza que torna o momento super tolerável. O estúdio é impecável em termos de privacidade.', status: 'approved', initials: 'AM', date: new Date().toISOString() },
-                { id: 2, name: 'Rodrigo C.', role: 'Cliente Márcio Lounge', rating: 5, comment: 'Encontrei no Márcio o barbeiro ideal. Ele tem uma precisão na tesoura incrível para cortes clássicos e a barboterapia é de dormir de tão relaxante. Faço depilação no peito com ele e a discrição e eficácia são absolutas.', status: 'approved', initials: 'RC', date: new Date().toISOString() },
-                { id: 3, name: 'Valéria S.', role: 'Cliente Estética Atelier', rating: 5, comment: 'O L&M Atelier é diferenciado. O agendamento é super fluido e quando você chega é recebida de forma exclusiva com um bom espumante brut. Lorena cuidou do meu design de sobrancelhas e o resultado foi espetacular.', status: 'approved', initials: 'VS', date: new Date().toISOString() }
-            ];
-
-            const defaultGallery = [
-                'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=600',
-                'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&q=80&w=600',
-                'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&q=80&w=600'
-            ];
-
-            if (!localStorage.getItem('lm_services')) localStorage.setItem('lm_services', JSON.stringify(defaultServices));
-            if (!localStorage.getItem('lm_reviews')) localStorage.setItem('lm_reviews', JSON.stringify(defaultReviews));
-            if (!localStorage.getItem('lm_gallery')) localStorage.setItem('lm_gallery', JSON.stringify(defaultGallery));
-            if (!localStorage.getItem('lm_messages')) localStorage.setItem('lm_messages', JSON.stringify([]));
-            if (!localStorage.getItem('lm_completed_appointments')) localStorage.setItem('lm_completed_appointments', JSON.stringify([]));
-        }
-        initDB();
+        // Dados iniciais agora gerenciados pelo Supabase (ver database.sql)
 
         function bookingApp() {
             return {
@@ -1192,10 +1214,36 @@
                     notes: ''
                 },
 
-                // Dados Dinâmicos
-                lorenaServices: [],
-                marcioServices: [],
-                approvedReviews: [],
+                // Dados Dinâmicos — pré-carregados com dados padrão para garantir que o menu aparece
+                lorenaServices: [
+                    { id: 1, name: 'Axila', desc: 'Remoção com cera de alta qualidade.', price: 20, time: 15 },
+                    { id: 2, name: 'Virilha completa', desc: 'Depilação íntima com máximo conforto e discrição.', price: 50, time: 35 },
+                    { id: 3, name: 'Perna inteira', desc: 'Depilação completa das pernas.', price: 50, time: 45 },
+                    { id: 4, name: 'Meia perna', desc: 'Depilação parcial da perna.', price: 30, time: 25 },
+                    { id: 5, name: 'Rosto', desc: 'Remoção de pelos faciais com cera suave.', price: 20, time: 20 },
+                    { id: 6, name: 'Buço', desc: 'Limpeza rápida e eficaz.', price: 10, time: 10 },
+                    { id: 7, name: 'Braço inteiro', desc: 'Depilação completa dos braços.', price: 20, time: 25 },
+                    { id: 8, name: 'Costas', desc: 'Depilação feminina das costas.', price: 20, time: 25 },
+                    { id: 9, name: 'Sobrancelha', desc: 'Design e limpeza de sobrancelhas.', price: 15, time: 15 }
+                ],
+                marcioServices: [
+                    { id: 10, name: 'Barba', desc: 'Cuidado masculino para a barba com toalha quente.', price: 20, time: 30 },
+                    { id: 11, name: 'Corte', desc: 'Corte de cabelo masculino e infantil.', price: 20, time: 40 },
+                    { id: 12, name: 'Pelos do nariz e orelha', desc: 'Remoção indolor e precisa.', price: 20, time: 15 },
+                    { id: 13, name: 'Depilação costas', desc: 'Depilação com cera especial masculina.', price: 20, time: 25 },
+                    { id: 14, name: 'Depilação peito', desc: 'Depilação com cera especial masculina.', price: 20, time: 25 },
+                    { id: 15, name: 'Perna inteira', desc: 'Depilação completa das pernas.', price: 50, time: 45 },
+                    { id: 16, name: 'Parte íntima', desc: 'Depilação com total discrição e higiene.', price: 50, time: 45 },
+                    { id: 17, name: 'Combo depilação total', desc: 'Pacote completo: corpo total ou parcial.', price: 150, time: 120 },
+                    { id: 18, name: 'Matizador para Barba', desc: 'Realce a cor da sua barba.', price: 10, time: 15 },
+                    { id: 19, name: 'Mechas no Cabelo', desc: 'Estilo moderno e iluminado.', price: 50, time: 60 },
+                    { id: 20, name: 'Desenhos Freestyle', desc: 'Arte exclusiva em cortes.', price: 30, time: 30 }
+                ],
+                approvedReviews: [
+                    { id: 1, name: 'Ana Maria G.', role: 'Cliente Studio Lorena', rating: 5, comment: 'Estou acostumada a fazer depilação e a Lorena é simplesmente genial. A cera que ela desenvolve não me dá foliculite e ela tem uma delicadeza que torna o momento super tolerável. O estúdio é impecável em termos de privacidade.', initials: 'AM' },
+                    { id: 2, name: 'Rodrigo C.', role: 'Cliente Márcio Lounge', rating: 5, comment: 'Encontrei no Márcio o barbeiro ideal. Ele tem uma precisão na tesoura incrível para cortes clássicos e a barboterapia é de dormir de tão relaxante. Faço depilação no peito com ele e a discrição e eficácia são absolutas.', initials: 'RC' },
+                    { id: 3, name: 'Valéria S.', role: 'Cliente Estética Atelier', rating: 5, comment: 'O L&M Atelier é diferenciado. O agendamento é super fluido e quando você chega é recebida de forma exclusiva com um bom espumante brut. Lorena cuidou do meu design de sobrancelhas e o resultado foi espetacular.', initials: 'VS' }
+                ],
                 gallery: [],
                 
                 reviewModalOpen: false,
@@ -1204,60 +1252,94 @@
                 
                 contactForm: { name: '', phone: '', email: '', subject: '', message: '' },
                 reviewForm: { name: '', role: '', rating: '5', comment: '' },
-                
+
                 // Horários Gerados Dinamicamente
                 availableSlots: [],
+                slotsLoading: false,
 
-                // Inicializar aplicação e resgatar agendamentos salvos
+                // Inicializar aplicação
                 init() {
+                    // Dados já pré-carregados nas propriedades acima.
+                    // Tenta buscar dados atualizados do Supabase em background.
                     this.loadSavedAppointments();
                     this.loadDataFromDB();
-                    // Setar data default para amanhã para evitar erros de passado
+
+                    // Data padrão: amanhã
                     const tomorrow = new Date();
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     this.bookingState.date = tomorrow.toISOString().split('T')[0];
                 },
 
-                loadDataFromDB() {
-                    const services = JSON.parse(localStorage.getItem('lm_services'));
-                    this.lorenaServices = services.lorena || [];
-                    this.marcioServices = services.marcio || [];
-                    
-                    const reviews = JSON.parse(localStorage.getItem('lm_reviews'));
-                    this.approvedReviews = reviews.filter(r => r.status === 'approved');
-                    
-                    this.gallery = JSON.parse(localStorage.getItem('lm_gallery')) || [];
+                async loadDataFromDB() {
+                    try {
+                        // Buscar serviços do banco — só substitui se ambas as categorias tiverem dados
+                        const { data: services, error: svcError } = await supabase.from('services').select('*');
+                        if (!svcError && services && services.length > 0) {
+                            const lorena = services.filter(s => s.category === 'lorena');
+                            const marcio  = services.filter(s => s.category === 'marcio');
+                            // Só substitui os padrões se o banco tiver serviços de ambas as categorias
+                            if (lorena.length > 0 && marcio.length > 0) {
+                                this.lorenaServices = lorena;
+                                this.marcioServices  = marcio;
+                            } else {
+                                console.warn('[DB] Serviços incompletos no banco. Mantendo dados padrão. Execute o database.sql completo.');
+                            }
+                        }
+
+                        // Buscar avaliações aprovadas
+                        const { data: reviews, error: revError } = await supabase.from('reviews').select('*').eq('status', 'approved').order('date', { ascending: false });
+                        if (!revError && reviews && reviews.length > 0) {
+                            this.approvedReviews = reviews;
+                        }
+
+                        // Buscar galeria
+                        const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+                        if (gallery && gallery.length > 0) this.gallery = gallery.map(g => g.url);
+
+                    } catch (e) {
+                        // Supabase indisponível — dados padrão já foram carregados no init()
+                        console.warn('Supabase indisponível, usando dados padrão.', e.message);
+                    }
                 },
 
-                submitContactForm() {
-                    const messages = JSON.parse(localStorage.getItem('lm_messages')) || [];
-                    messages.push({
-                        id: Date.now(),
-                        ...this.contactForm,
-                        date: new Date().toISOString()
-                    });
-                    localStorage.setItem('lm_messages', JSON.stringify(messages));
-                    this.contactForm = { name: '', phone: '', email: '', subject: '', message: '' };
-                    this.triggerToast("Mensagem enviada com sucesso! Retornaremos em breve.");
+                async submitContactForm() {
+                    const { error } = await supabase.from('messages').insert([{
+                        name: this.contactForm.name,
+                        phone: this.contactForm.phone,
+                        email: this.contactForm.email,
+                        subject: this.contactForm.subject,
+                        message: this.contactForm.message
+                    }]);
+                    
+                    if (!error) {
+                        notifyLorena("Novo Contato", `Nome: ${this.contactForm.name}\nWhatsApp: ${this.contactForm.phone}\nMensagem: ${this.contactForm.message}`);
+                        this.contactForm = { name: '', phone: '', email: '', subject: '', message: '' };
+                        this.triggerToast("Mensagem enviada com sucesso! Retornaremos em breve.");
+                    } else {
+                        this.triggerToast("Erro ao enviar mensagem.");
+                    }
                 },
 
-                submitReview() {
-                    const reviews = JSON.parse(localStorage.getItem('lm_reviews')) || [];
+                async submitReview() {
                     const initials = this.reviewForm.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() || 'CLI';
-                    reviews.push({
-                        id: Date.now(),
+                    
+                    const { error } = await supabase.from('reviews').insert([{
                         name: this.reviewForm.name,
                         role: this.reviewForm.role,
                         rating: parseInt(this.reviewForm.rating),
                         comment: this.reviewForm.comment,
                         status: 'pending',
-                        initials: initials,
-                        date: new Date().toISOString()
-                    });
-                    localStorage.setItem('lm_reviews', JSON.stringify(reviews));
-                    this.reviewForm = { name: '', role: '', rating: '5', comment: '' };
-                    this.reviewModalOpen = false;
-                    this.triggerToast("Avaliação enviada! Ela será exibida após aprovação.");
+                        initials: initials
+                    }]);
+
+                    if (!error) {
+                        notifyLorena("Nova Avaliação", `Cliente: ${this.reviewForm.name}\nNota: ${this.reviewForm.rating} estrelas\nRelato: ${this.reviewForm.comment}`);
+                        this.reviewForm = { name: '', role: '', rating: '5', comment: '' };
+                        this.reviewModalOpen = false;
+                        this.triggerToast("Avaliação enviada! Ela será exibida após aprovação.");
+                    } else {
+                        this.triggerToast("Erro ao enviar avaliação.");
+                    }
                 },
 
                 openGalleryModal(img) {
@@ -1317,39 +1399,51 @@
                     return this.bookingState.services.reduce((acc, svc) => acc + svc.duration, 0);
                 },
 
-                // Gerador dinâmico de horários de folga e livre
-                generateAvailableSlots() {
+                // Gerador dinâmico de horários — consulta o banco para evitar conflitos
+                async generateAvailableSlots() {
                     if (!this.bookingState.date) {
                         this.availableSlots = [];
                         return;
                     }
 
-                    // Checa se é domingo ou segunda (dias fechados)
+                    // Checa dias fechados: domingo (0) e segunda (1)
                     const dateObj = new Date(this.bookingState.date + 'T00:00:00');
-                    const dayOfWeek = dateObj.getDay(); // 0 = Domingo, 1 = Segunda
-
+                    const dayOfWeek = dateObj.getDay();
                     if (dayOfWeek === 0 || dayOfWeek === 1) {
                         this.availableSlots = [];
-                        this.triggerToast("O L&M Atelier está fechado aos Domingos e Segundas. Selecione Terça a Sábado.");
+                        this.triggerToast('O L&M Atelier está fechado aos Domingos e Segundas. Selecione Terça a Sábado.');
                         return;
                     }
 
-                    // Gerar todos os horários de 09:00 a 17:30 em intervalos de 30 minutos
+                    // Gera todos os slots das 09:00 às 19:30 de 30 em 30 min
                     const allSlots = [];
-                    for (let hour = 9; hour <= 17; hour++) {
-                        allSlots.push(String(hour).padStart(2, '0') + ':00');
-                        if (hour < 17) {
-                            allSlots.push(String(hour).padStart(2, '0') + ':30');
-                        }
+                    for (let h = 9; h < 20; h++) {
+                        allSlots.push(String(h).padStart(2, '0') + ':00');
+                        allSlots.push(String(h).padStart(2, '0') + ':30');
                     }
-                    allSlots.push('17:30');
 
-                    // Remover horários já agendados neste dia
-                    const bookedTimes = this.savedAppointments
-                        .filter(appt => appt.date === this.bookingState.date)
-                        .map(appt => appt.time);
+                    // Indica carregamento
+                    this.availableSlots = [];
+                    this.slotsLoading = true;
 
-                    this.availableSlots = allSlots.filter(slot => !bookedTimes.includes(slot));
+                    try {
+                        // Busca TODOS os agendamentos ativos neste dia no banco
+                        const { data: booked } = await supabase
+                            .from('appointments')
+                            .select('time')
+                            .eq('date', this.bookingState.date)
+                            .eq('status', 'scheduled');
+
+                        const bookedTimes = (booked || []).map(a => a.time);
+                        this.availableSlots = allSlots.filter(slot => !bookedTimes.includes(slot));
+
+                    } catch (e) {
+                        // Se falhar, mostra todos os slots sem filtro
+                        console.warn('Não foi possível verificar horários ocupados:', e.message);
+                        this.availableSlots = allSlots;
+                    } finally {
+                        this.slotsLoading = false;
+                    }
                 },
 
                 // Validar Etapa 3 e ir para Confirmação Final
@@ -1366,52 +1460,109 @@
                 },
 
                 // Executar gravação final do agendamento
-                confirmBookingFinal() {
-                    // Clonar objeto de agendamento corrente
-                    const newAppointment = {
-                        date: this.bookingState.date,
-                        time: this.bookingState.time,
+                async confirmBookingFinal() {
+                    // Dados para exibição local (camelCase)
+                    const apptLocal = {
                         clientName: this.bookingState.clientName,
                         clientPhone: this.bookingState.clientPhone,
+                        date: this.bookingState.date,
+                        time: this.bookingState.time,
                         notes: this.bookingState.notes,
+                        totalPrice: this.totalPrice,
+                        totalDuration: this.totalDuration,
                         services: [...this.bookingState.services],
-                        totalPrice: this.totalPrice
+                        status: 'scheduled'
                     };
 
-                    // Adicionar ao array e salvar no LocalStorage
-                    this.savedAppointments.push(newAppointment);
-                    localStorage.setItem('lm_atelier_appointments', JSON.stringify(this.savedAppointments));
+                    // Payload para o Supabase (colunas em lowercase como criadas no banco)
+                    const apptDB = {
+                        clientname: this.bookingState.clientName,
+                        clientphone: this.bookingState.clientPhone,
+                        date: this.bookingState.date,
+                        time: this.bookingState.time,
+                        notes: this.bookingState.notes,
+                        totalprice: this.totalPrice,
+                        totalduration: this.totalDuration,
+                        services: JSON.stringify([...this.bookingState.services]),
+                        status: 'scheduled'
+                    };
 
-                    // Enviar notificação via WhatsApp
-                    this.sendWhatsAppNotification(newAppointment);
+                    try {
+                        const { data, error } = await supabase.from('appointments').insert([apptDB]).select();
 
-                    // Abrir Modal de Sucesso
-                    this.successModalOpen = true;
+                        if (error) {
+                            console.error('Erro Supabase ao agendar:', error);
+                            this.triggerToast('Erro ao salvar agendamento. Tente novamente.');
+                            return;
+                        }
+
+                        if (data && data.length > 0) {
+                            const apptId = data[0].id;
+                            const myIds = JSON.parse(localStorage.getItem('lm_my_appointment_ids') || '[]');
+                            myIds.push(apptId);
+                            localStorage.setItem('lm_my_appointment_ids', JSON.stringify(myIds));
+                            // Normaliza de volta para camelCase para uso interno
+                            this.savedAppointments.push({ ...apptLocal, id: apptId });
+                        }
+
+                        const servicesText = apptLocal.services.map(s => `${s.name} (R$ ${s.price})`).join(', ');
+                        notifyLorena('Novo Agendamento', `Cliente: ${apptLocal.clientName}\nData: ${this.formatDate(apptLocal.date)} às ${apptLocal.time}h\nServiços: ${servicesText}\nTotal: R$ ${apptLocal.totalPrice}`);
+                        this.sendWhatsAppNotification(apptLocal);
+                        this.successModalOpen = true;
+
+                    } catch (e) {
+                        console.error('Erro ao confirmar agendamento:', e);
+                        this.triggerToast('Erro: ' + (e.message || JSON.stringify(e)));
+                    }
                 },
 
-                // Carregar agendamentos do LocalStorage
-                loadSavedAppointments() {
-                    const stored = localStorage.getItem('lm_atelier_appointments');
-                    if (stored) {
+                // Carregar agendamentos do Supabase usando IDs salvos
+                async loadSavedAppointments() {
+                    const myIds = JSON.parse(localStorage.getItem('lm_my_appointment_ids') || '[]');
+                    if (myIds.length > 0) {
                         try {
-                            this.savedAppointments = JSON.parse(stored);
-                        } catch (e) {
+                            const { data } = await supabase.from('appointments').select('*').in('id', myIds);
+                            if (data) {
+                                // Normaliza colunas lowercase do banco para camelCase local
+                                this.savedAppointments = data
+                                    .filter(a => a.status === 'scheduled')
+                                    .map(a => ({
+                                        id: a.id,
+                                        clientName: a.clientname || a.clientName || '',
+                                        clientPhone: a.clientphone || a.clientPhone || '',
+                                        date: a.date,
+                                        time: a.time,
+                                        notes: a.notes,
+                                        totalPrice: a.totalprice ?? a.totalPrice ?? 0,
+                                        totalDuration: a.totalduration ?? a.totalDuration ?? 0,
+                                        services: typeof a.services === 'string' ? JSON.parse(a.services) : (a.services || []),
+                                        status: a.status
+                                    }));
+                            }
+                        } catch(e) {
                             this.savedAppointments = [];
                         }
+                    } else {
+                        this.savedAppointments = [];
                     }
                 },
 
                 // Cancelar agendamento do histórico
-                cancelSavedAppointment(index) {
+                async cancelSavedAppointment(index) {
                     const appt = this.savedAppointments[index];
                     if (confirm(`Deseja realmente cancelar o agendamento do dia ${this.formatDate(appt.date)} às ${appt.time}h?`)) {
-                        // Enviar notificação de cancelamento via WhatsApp
-                        this.sendCancellationNotification(appt);
                         
-                        // Remover do histórico
-                        this.savedAppointments.splice(index, 1);
-                        localStorage.setItem('lm_atelier_appointments', JSON.stringify(this.savedAppointments));
-                        this.triggerToast("Reserva cancelada com sucesso e aviso enviado.");
+                        const { error } = await supabase.from('appointments').update({ status: 'cancelled' }).eq('id', appt.id);
+                        
+                        if (!error) {
+                            notifyLorena('Cancelamento', `O cliente ${appt.clientName || appt.clientname} cancelou o agendamento de ${this.formatDate(appt.date)} às ${appt.time}h.`);
+                            
+                            // Remover do histórico
+                            this.savedAppointments.splice(index, 1);
+                            this.triggerToast("Reserva cancelada com sucesso.");
+                        } else {
+                            this.triggerToast("Erro ao cancelar reserva.");
+                        }
                     }
                 },
 
