@@ -125,7 +125,7 @@
                 <a href="#universo" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">O Universo</a>
                 <a href="#profissionais" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Lorena & Márcio</a>
                 <a href="#experiencias" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Menu de Serviços</a>
-                <a href="#depoimentos" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Relatos</a>
+                <a href="#depoimentos" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Avaliações</a>
                 <a href="#galeria" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Galeria</a>
                 <a href="#contato" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Contato</a>
                 <a href="admin.html" class="text-gold-400 hover:text-white transition-colors duration-300 font-bold">Painel de Adm</a>
@@ -152,7 +152,7 @@
             <a href="#universo" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">O Universo</a>
             <a href="#profissionais" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Lorena & Márcio</a>
             <a href="#experiencias" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Menu de Serviços</a>
-            <a href="#depoimentos" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Relatos</a>
+            <a href="#depoimentos" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Avaliações</a>
             <a href="#galeria" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Galeria</a>
             <a href="#contato" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Contato</a>
             <a href="admin.html" class="block py-2 text-gold-400 hover:text-white font-bold">Painel de Adm</a>
@@ -745,35 +745,16 @@
                 <!-- Grid Mosaico Editorial de Fotos Reais Simuladas de Alta Definição -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     
-                    <!-- Imagem 1: Barber Chair -->
-                    <div class="group relative aspect-[4/3] bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800">
-                        <div class="absolute inset-0 bg-gradient-to-t from-obsidian-950 via-transparent to-transparent opacity-80 z-10"></div>
-                        <div class="absolute inset-0 flex flex-col justify-end p-6 z-20">
-                            <span class="text-[10px] uppercase tracking-widest text-gold-400 font-sans">Barber Lounge</span>
-                            <h4 class="font-serif text-lg text-white font-medium">A Cadeira de Márcio</h4>
+                    <template x-for="env in environments" :key="env.id || env.title">
+                        <div class="group relative aspect-[4/3] bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800">
+                            <div class="absolute inset-0 bg-gradient-to-t from-obsidian-950 via-transparent to-transparent opacity-80 z-10"></div>
+                            <div class="absolute inset-0 flex flex-col justify-end p-6 z-20">
+                                <span class="text-[10px] uppercase tracking-widest text-gold-400 font-sans" x-text="env.subtitle"></span>
+                                <h4 class="font-serif text-lg text-white font-medium" x-text="env.title"></h4>
+                            </div>
+                            <img :src="env.image_url" class="w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700">
                         </div>
-                        <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=600" alt="Cadeira de barbeiro de couro vintage" class="w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700" onerror="this.src='https://placehold.co/600x450/15161A/C99E67?text=Barber+Lounge'">
-                    </div>
-
-                    <!-- Imagem 2: Estúdio de Depilação -->
-                    <div class="group relative aspect-[4/3] bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800">
-                        <div class="absolute inset-0 bg-gradient-to-t from-obsidian-950 via-transparent to-transparent opacity-80 z-10"></div>
-                        <div class="absolute inset-0 flex flex-col justify-end p-6 z-20">
-                            <span class="text-[10px] uppercase tracking-widest text-gold-400 font-sans">Cabines Estéticas</span>
-                            <h4 class="font-serif text-lg text-white font-medium">Refúgio Lorena</h4>
-                        </div>
-                        <img src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&q=80&w=600" alt="Mesa de massagem e estética premium" class="w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700" onerror="this.src='https://placehold.co/600x450/15161A/C99E67?text=Refugio+Lorena'">
-                    </div>
-
-                    <!-- Imagem 3: Copo de Whisky / Cortesia -->
-                    <div class="group relative aspect-[4/3] bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800">
-                        <div class="absolute inset-0 bg-gradient-to-t from-obsidian-950 via-transparent to-transparent opacity-80 z-10"></div>
-                        <div class="absolute inset-0 flex flex-col justify-end p-6 z-20">
-                            <span class="text-[10px] uppercase tracking-widest text-gold-400 font-sans">Bem-Vindo</span>
-                            <h4 class="font-serif text-lg text-white font-medium">Atendimento Single Malt</h4>
-                        </div>
-                        <img src="https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&q=80&w=600" alt="Copo de whisky com gelo na recepção" class="w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700" onerror="this.src='https://placehold.co/600x450/15161A/C99E67?text=Atendimento+Gourmet'">
-                    </div>
+                    </template>
 
                 </div>
             </div>
@@ -820,9 +801,12 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <template x-for="(img, idx) in gallery" :key="idx">
                     <div @click="openGalleryModal(img)" class="cursor-pointer aspect-square bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800 relative group">
-                        <img :src="img" class="w-full h-full object-cover group-hover:scale-110 group-hover:opacity-75 transition-all duration-500">
+                        <img :src="img.url" class="w-full h-full object-cover group-hover:scale-110 group-hover:opacity-75 transition-all duration-500">
                         <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <i class="fa-solid fa-expand text-2xl text-white drop-shadow-md"></i>
+                        </div>
+                        <div x-show="img.title" class="absolute bottom-0 left-0 right-0 bg-obsidian-900/80 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <span class="text-white text-xs font-semibold block" x-text="img.title"></span>
                         </div>
                     </div>
                 </template>
@@ -902,10 +886,54 @@
             </div>
         </div>
 
-        <!-- Gallery Modal -->
+        <!-- Gallery Modal with Comments -->
         <div x-show="galleryModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/95 z-[70] backdrop-blur-md flex items-center justify-center p-4 sm:p-10">
-            <button @click="galleryModalOpen = false" class="absolute top-6 right-6 text-white hover:text-gold-400 z-10"><i class="fa-solid fa-xmark text-3xl"></i></button>
-            <img :src="selectedGalleryImg" class="max-w-full max-h-full object-contain border border-obsidian-800 rounded-sm shadow-2xl">
+            <button @click="closeGalleryModal()" class="absolute top-6 right-6 text-white hover:text-gold-400 z-10"><i class="fa-solid fa-xmark text-3xl"></i></button>
+            
+            <div @click.stop class="w-full max-w-5xl bg-obsidian-900 flex flex-col md:flex-row rounded-sm overflow-hidden shadow-2xl max-h-[90vh]">
+                <!-- Imagem -->
+                <div class="w-full md:w-3/5 bg-black flex items-center justify-center relative min-h-[40vh] md:min-h-[auto]">
+                    <img :src="selectedGalleryImg?.url" class="max-w-full max-h-full object-contain">
+                </div>
+                
+                <!-- Comentários e Info -->
+                <div class="w-full md:w-2/5 flex flex-col h-[50vh] md:h-auto max-h-full md:max-h-[90vh] bg-obsidian-900 border-l border-obsidian-800 relative">
+                    
+                    <div class="p-6 border-b border-obsidian-850 shrink-0">
+                        <h3 class="font-serif text-2xl text-white mb-2" x-text="selectedGalleryImg?.title || 'Foto do Atelier'"></h3>
+                        <p class="text-sm text-obsidian-300 font-light" x-text="selectedGalleryImg?.description"></p>
+                    </div>
+
+                    <!-- Lista de Comentários -->
+                    <div class="flex-grow overflow-y-auto p-6 space-y-4">
+                        <div x-show="loadingComments" class="text-center text-obsidian-500 text-xs py-4"><i class="fa-solid fa-spinner fa-spin"></i> Carregando comentários...</div>
+                        
+                        <template x-for="c in currentImageComments" :key="c.id">
+                            <div class="space-y-1 bg-obsidian-950 p-3 rounded-sm border border-obsidian-850">
+                                <p class="text-gold-400 text-xs font-semibold flex justify-between">
+                                    <span x-text="c.username"></span>
+                                    <span class="text-[9px] text-obsidian-500" x-text="formatDate(c.created_at?.split('T')[0])"></span>
+                                </p>
+                                <p class="text-obsidian-200 text-sm font-light" x-text="c.comment"></p>
+                            </div>
+                        </template>
+                        
+                        <div x-show="!loadingComments && currentImageComments.length === 0" class="text-center text-obsidian-500 text-xs italic py-4">Nenhum comentário ainda. Seja o primeiro!</div>
+                    </div>
+
+                    <!-- Input de Comentário -->
+                    <form @submit.prevent="submitComment" class="p-4 border-t border-obsidian-850 bg-obsidian-950 shrink-0">
+                        <div class="space-y-2">
+                            <input type="text" x-model="newComment.username" placeholder="Seu nome" required class="w-full bg-obsidian-900 border border-obsidian-800 focus:border-gold-500 rounded-sm p-2 text-xs text-white focus:outline-none">
+                            <div class="flex gap-2">
+                                <input type="text" x-model="newComment.text" placeholder="Adicione um comentário..." required class="w-full bg-obsidian-900 border border-obsidian-800 focus:border-gold-500 rounded-sm p-2 text-xs text-white focus:outline-none">
+                                <button type="submit" class="bg-gold-500 hover:bg-gold-600 text-obsidian-900 px-4 py-2 text-xs font-semibold uppercase tracking-widest rounded-sm transition-colors" :disabled="submittingComment" :class="submittingComment ? 'opacity-50' : ''"><i class="fa-solid fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
         </div>
 
         <div x-show="successModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/90 z-50 backdrop-blur-md flex items-center justify-center p-6">
@@ -1010,15 +1038,15 @@
                 <form @submit.prevent="submitReview" class="space-y-4">
                     <div class="space-y-2">
                         <label class="block text-xs uppercase tracking-widest text-obsidian-300">Nome</label>
-                        <input type="text" x-model="reviewForm.name" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                        <input type="text" x-model="reviewForm.name" required class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 focus:outline-none transition-colors">
                     </div>
                     <div class="space-y-2">
                         <label class="block text-xs uppercase tracking-widest text-obsidian-300">Serviço/Profissional Avaliado</label>
-                        <input type="text" x-model="reviewForm.role" placeholder="Ex: Cliente Studio Lorena" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                        <input type="text" x-model="reviewForm.role" placeholder="Ex: Cliente Studio Lorena" required class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 focus:outline-none transition-colors">
                     </div>
                     <div class="space-y-2">
                         <label class="block text-xs uppercase tracking-widest text-obsidian-300">Nota (1 a 5)</label>
-                        <select x-model="reviewForm.rating" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                        <select x-model="reviewForm.rating" required class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 focus:outline-none transition-colors">
                             <option value="5">5 Estrelas - Excelente</option>
                             <option value="4">4 Estrelas - Muito Bom</option>
                             <option value="3">3 Estrelas - Bom</option>
@@ -1028,7 +1056,7 @@
                     </div>
                     <div class="space-y-2">
                         <label class="block text-xs uppercase tracking-widest text-obsidian-300">Seu Relato</label>
-                        <textarea x-model="reviewForm.comment" required rows="3" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors"></textarea>
+                        <textarea x-model="reviewForm.comment" required rows="3" class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 focus:outline-none transition-colors"></textarea>
                     </div>
                     <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-semibold tracking-widest text-xs uppercase py-4 rounded-sm transition-all shadow-md mt-4">
                         Enviar Avaliação
@@ -1088,62 +1116,9 @@
             </div>
         </div>
 
-        <!-- Galeria -->
-        <section id="galeria" class="py-24 px-6 max-w-7xl mx-auto border-t border-obsidian-850">
-            <div class="text-center max-w-xl mx-auto mb-16 space-y-4">
-                <span class="text-gold-400 text-xs tracking-widest uppercase font-medium">Nosso Espaço</span>
-                <h2 class="font-serif text-3xl sm:text-5xl text-white">Galeria de Fotos</h2>
-                <div class="w-16 h-[1px] bg-gold-400 mx-auto mt-4"></div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <template x-for="(img, idx) in gallery" :key="idx">
-                    <div @click="openGalleryModal(img)" class="cursor-pointer aspect-square bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800 relative group">
-                        <img :src="img" class="w-full h-full object-cover group-hover:scale-110 group-hover:opacity-75 transition-all duration-500">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <i class="fa-solid fa-expand text-2xl text-white drop-shadow-md"></i>
-                        </div>
-                    </div>
-                </template>
-            </div>
-            <div x-show="gallery.length === 0" class="text-center text-obsidian-400 py-12">
-                Nenhuma foto na galeria no momento.
-            </div>
-        </section>
 
-        <!-- Contato -->
-        <section id="contato" class="py-24 px-6 max-w-4xl mx-auto border-t border-obsidian-850">
-            <div class="text-center space-y-4 mb-12">
-                <span class="text-gold-400 text-xs tracking-widest uppercase font-medium">Fale Conosco</span>
-                <h2 class="font-serif text-3xl sm:text-5xl text-white">Envie sua Mensagem</h2>
-            </div>
-            <form @submit.prevent="submitContactForm" class="space-y-6 bg-obsidian-900 p-8 rounded-sm border border-obsidian-800">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Nome</label>
-                        <input type="text" x-model="contactForm.name" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Telefone</label>
-                        <input type="tel" x-model="contactForm.phone" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <label class="block text-xs uppercase tracking-widest text-obsidian-300">E-mail</label>
-                    <input type="email" x-model="contactForm.email" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
-                </div>
-                <div class="space-y-2">
-                    <label class="block text-xs uppercase tracking-widest text-obsidian-300">Assunto</label>
-                    <input type="text" x-model="contactForm.subject" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
-                </div>
-                <div class="space-y-2">
-                    <label class="block text-xs uppercase tracking-widest text-obsidian-300">Mensagem</label>
-                    <textarea x-model="contactForm.message" required rows="4" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors"></textarea>
-                </div>
-                <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-semibold tracking-widest text-xs uppercase py-4 rounded-sm transition-all shadow-md flex justify-center items-center gap-2">
-                    Enviar Mensagem <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </form>
-        </section>
+
+
 
     </main>
 
@@ -1245,10 +1220,19 @@
                     { id: 3, name: 'Valéria S.', role: 'Cliente Estética Atelier', rating: 5, comment: 'O L&M Atelier é diferenciado. O agendamento é super fluido e quando você chega é recebida de forma exclusiva com um bom espumante brut. Lorena cuidou do meu design de sobrancelhas e o resultado foi espetacular.', initials: 'VS' }
                 ],
                 gallery: [],
+                environments: [
+                    { subtitle: 'Barber Lounge', title: 'A Cadeira de Márcio', image_url: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=600' },
+                    { subtitle: 'Cabines Estéticas', title: 'Refúgio Lorena', image_url: 'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&q=80&w=600' },
+                    { subtitle: 'Bem-Vindo', title: 'Atendimento Single Malt', image_url: 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&q=80&w=600' }
+                ],
                 
                 reviewModalOpen: false,
                 galleryModalOpen: false,
-                selectedGalleryImg: '',
+                selectedGalleryImg: null,
+                currentImageComments: [],
+                loadingComments: false,
+                submittingComment: false,
+                newComment: { username: '', text: '' },
                 
                 contactForm: { name: '', phone: '', email: '', subject: '', message: '' },
                 reviewForm: { name: '', role: '', rating: '5', comment: '' },
@@ -1294,7 +1278,11 @@
 
                         // Buscar galeria
                         const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
-                        if (gallery && gallery.length > 0) this.gallery = gallery.map(g => g.url);
+                        if (gallery && gallery.length > 0) this.gallery = gallery;
+
+                        // Buscar ambientes (destaques da home)
+                        const { data: envs } = await supabase.from('environments').select('*').order('order', { ascending: true });
+                        if (envs && envs.length > 0) this.environments = envs;
 
                     } catch (e) {
                         // Supabase indisponível — dados padrão já foram carregados no init()
@@ -1342,9 +1330,57 @@
                     }
                 },
 
-                openGalleryModal(img) {
+                async openGalleryModal(img) {
                     this.selectedGalleryImg = img;
                     this.galleryModalOpen = true;
+                    this.currentImageComments = [];
+                    this.loadingComments = true;
+                    
+                    try {
+                        const { data } = await supabase
+                            .from('gallery_comments')
+                            .select('*')
+                            .eq('gallery_id', img.id)
+                            .order('created_at', { ascending: true });
+                        if (data) {
+                            this.currentImageComments = data;
+                        }
+                    } catch(e) {
+                        console.error('Erro ao buscar comentários', e);
+                    } finally {
+                        this.loadingComments = false;
+                    }
+                },
+
+                closeGalleryModal() {
+                    this.galleryModalOpen = false;
+                    this.selectedGalleryImg = null;
+                },
+
+                async submitComment() {
+                    if (!this.selectedGalleryImg || !this.newComment.username.trim() || !this.newComment.text.trim()) return;
+                    
+                    this.submittingComment = true;
+                    const payload = {
+                        gallery_id: this.selectedGalleryImg.id,
+                        username: this.newComment.username.trim(),
+                        comment: this.newComment.text.trim()
+                    };
+                    
+                    try {
+                        const { data, error } = await supabase.from('gallery_comments').insert([payload]).select();
+                        if (!error && data && data.length > 0) {
+                            this.currentImageComments.push(data[0]);
+                            this.newComment.text = '';
+                            // Keep username!
+                        } else {
+                            this.triggerToast("Erro ao enviar comentário.");
+                        }
+                    } catch (e) {
+                        this.triggerToast("Erro na conexão.");
+                    } finally {
+                        this.submittingComment = false;
+                    }
                 },
 
                 // Rolagem suave para seções específicas
