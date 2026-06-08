@@ -907,7 +907,7 @@
                 <div class="w-full md:w-3/5 bg-black flex items-center justify-center relative min-h-[40vh] md:min-h-[auto]">
                     <img x-show="selectedGalleryImg?.type !== 'video'" :src="selectedGalleryImg?.url" class="max-w-full max-h-full object-contain">
                     <template x-if="selectedGalleryImg?.type === 'video'">
-                        <iframe :src="selectedGalleryImg?.video_url" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full aspect-video"></iframe>
+                        <iframe :src="safeVideoUrl(selectedGalleryImg?.video_url)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full aspect-video"></iframe>
                     </template>
                 </div>
                 

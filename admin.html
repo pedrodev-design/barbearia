@@ -410,6 +410,11 @@
                 <div class="space-y-2" x-show="galleryUpload.type === 'image'">
                     <label class="block text-xs uppercase tracking-widest text-obsidian-300">Selecione a Imagem</label>
                     <input type="file" accept="image/*" @change="handleFileSelect" class="w-full text-white text-xs">
+                    <!-- Preview da imagem selecionada -->
+                    <div x-show="galleryUpload.previewUrl" class="mt-2 rounded-sm overflow-hidden border border-obsidian-700">
+                        <img :src="galleryUpload.previewUrl" class="w-full max-h-40 object-cover">
+                        <p class="text-[10px] text-obsidian-400 text-center py-1 bg-obsidian-950">Prévia da imagem selecionada</p>
+                    </div>
                 </div>
                 <!-- Preview Canvas hidden -->
                 <canvas id="imageCanvas" style="display:none;"></canvas>
@@ -429,7 +434,11 @@
                 </div>
                 
                 <button type="submit" :disabled="isUploading" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-bold uppercase tracking-widest text-xs py-4 rounded-sm transition-colors mt-6 disabled:opacity-50">
-                    <span x-text="isUploading ? 'Processando...' : 'Salvar Foto'"></span>
+                    <span x-show="!isUploading">Salvar Foto</span>
+                    <span x-show="isUploading" class="flex items-center justify-center gap-2">
+                        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                        Enviando...
+                    </span>
                 </button>
             </form>
         </div>
@@ -462,8 +471,9 @@
 
                 galleryUploadModalOpen: false,
                 isUploading: false,
-                galleryUpload: { title: '', description: '', base64: '', type: 'image', video_url: '' },
+                galleryUpload: { title: '', description: '', file: null, previewUrl: '', type: 'image', video_url: '' },
                 heroImage: '',
+                heroFile: null,
                 contactPhone: '',
                 contactEmail: '',
 
@@ -605,41 +615,8 @@
                 handleFileSelect(event) {
                     const file = event.target.files[0];
                     if (!file) return;
-                    
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.getElementById('imageCanvas');
-                            const ctx = canvas.getContext('2d');
-                            
-                            const MAX_WIDTH = 1200;
-                            const MAX_HEIGHT = 1200;
-                            let width = img.width;
-                            let height = img.height;
-                            
-                            if (width > height) {
-                                if (width > MAX_WIDTH) {
-                                    height *= MAX_WIDTH / width;
-                                    width = MAX_WIDTH;
-                                }
-                            } else {
-                                if (height > MAX_HEIGHT) {
-                                    width *= MAX_HEIGHT / height;
-                                    height = MAX_HEIGHT;
-                                }
-                            }
-                            
-                            canvas.width = width;
-                            canvas.height = height;
-                            ctx.drawImage(img, 0, 0, width, height);
-                            
-                            // Usar JPEG ao invés de WEBP para evitar fallback de PNG no Safari que estoura o payload
-                            this.galleryUpload.base64 = canvas.toDataURL('image/jpeg', 0.6);
-                        };
-                        img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
+                    this.galleryUpload.file = file;
+                    this.galleryUpload.previewUrl = URL.createObjectURL(file);
                 },
                 async saveGalleryImage() {
                     let payload = { 
@@ -648,41 +625,47 @@
                         type: this.galleryUpload.type
                     };
 
-                    if (this.galleryUpload.type === 'image') {
-                        if (!this.galleryUpload.base64) {
-                            alert("Aguarde a imagem ser processada ou selecione uma válida.");
-                            return;
-                        }
-                        payload.url = this.galleryUpload.base64;
-                    } else {
-                        if (!this.galleryUpload.video_url) {
-                            alert("Insira o link do YouTube.");
-                            return;
-                        }
-                        
-                        let embedUrl = this.galleryUpload.video_url;
-                        let videoId = '';
-                        const match = embedUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|.*[?&]v=))([^"&?\/\s]{11})/);
-                        
-                        if (match && match[1]) {
-                            videoId = match[1];
-                            payload.video_url = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&mute=0';
-                            payload.url = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-                        } else {
-                            alert("Link do YouTube inválido. Copie e cole a URL correta do vídeo.");
-                            return;
-                        }
-                    }
-                    
                     this.isUploading = true;
                     try {
+                        if (this.galleryUpload.type === 'image') {
+                            if (!this.galleryUpload.file) {
+                                alert("Selecione uma imagem.");
+                                this.isUploading = false;
+                                return;
+                            }
+                            const file = this.galleryUpload.file;
+                            const ext = file.name.split('.').pop();
+                            const fileName = `gallery/${Date.now()}.${ext}`;
+                            const { error: upErr } = await supabase.storage.from('images').upload(fileName, file, { upsert: true });
+                            if (upErr) throw upErr;
+                            const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
+                            payload.url = urlData.publicUrl;
+                        } else {
+                            if (!this.galleryUpload.video_url) {
+                                alert("Insira o link do YouTube.");
+                                this.isUploading = false;
+                                return;
+                            }
+                            const match = this.galleryUpload.video_url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|.*[?&]v=))([^"&?\/\s]{11})/);
+                            if (match && match[1]) {
+                                const videoId = match[1];
+                                payload.video_url = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&mute=0';
+                                payload.url = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                            } else {
+                                alert("Link do YouTube inválido.");
+                                this.isUploading = false;
+                                return;
+                            }
+                        }
+                        
                         const { error } = await supabase.from('gallery').insert([payload]);
                         if (error) throw error;
                         await this.loadData();
                         this.galleryUploadModalOpen = false;
-                        this.galleryUpload = { title: '', description: '', base64: '', type: 'image', video_url: '' };
+                        this.galleryUpload = { title: '', description: '', file: null, previewUrl: '', type: 'image', video_url: '' };
+                        alert("Adicionado com sucesso!");
                     } catch (err) {
-                        alert("Erro ao fazer upload. Pode haver um erro de limite do banco, tente imagens menores.");
+                        alert("Erro: " + err.message);
                         console.error(err);
                     } finally {
                         this.isUploading = false;
@@ -700,60 +683,38 @@
                 handleEnvImageUpload(event, idx) {
                     const file = event.target.files[0];
                     if (!file) return;
-                    
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.getElementById('imageCanvas');
-                            const ctx = canvas.getContext('2d');
-                            
-                            const MAX_WIDTH = 1200;
-                            const MAX_HEIGHT = 1200;
-                            let width = img.width;
-                            let height = img.height;
-                            
-                            if (width > height) {
-                                if (width > MAX_WIDTH) {
-                                    height *= MAX_WIDTH / width;
-                                    width = MAX_WIDTH;
-                                }
-                            } else {
-                                if (height > MAX_HEIGHT) {
-                                    width *= MAX_HEIGHT / height;
-                                    height = MAX_HEIGHT;
-                                }
-                            }
-                            
-                            canvas.width = width;
-                            canvas.height = height;
-                            ctx.drawImage(img, 0, 0, width, height);
-                            
-                            this.environments[idx].image_url = canvas.toDataURL('image/jpeg', 0.6);
-                        };
-                        img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
+                    this.environments[idx].image_url = URL.createObjectURL(file);
+                    this.environments[idx]._file = file;
                 },
                 
                 async saveEnvironment(idx) {
                     const env = this.environments[idx];
                     try {
+                        let imageUrl = env.image_url;
+                        if (env._file) {
+                            const file = env._file;
+                            const ext = file.name.split('.').pop();
+                            const fileName = `environments/${Date.now()}.${ext}`;
+                            const { error: upErr } = await supabase.storage.from('images').upload(fileName, file, { upsert: true });
+                            if (upErr) throw upErr;
+                            const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
+                            imageUrl = urlData.publicUrl;
+                        }
                         if (env.id) {
                             const { error } = await supabase.from('environments').update({
                                 title: env.title,
                                 subtitle: env.subtitle,
-                                image_url: env.image_url
+                                image_url: imageUrl
                             }).eq('id', env.id);
                             if (error) throw error;
                         } else {
-                            const { error } = await supabase.from('environments').insert([env]);
+                            const { error } = await supabase.from('environments').insert([{ title: env.title, subtitle: env.subtitle, image_url: imageUrl }]);
                             if (error) throw error;
                         }
                         alert("Ambiente atualizado com sucesso!");
                         await this.loadData();
                     } catch (e) {
-                        alert("Erro ao salvar ambiente. A imagem pode ser muito pesada.");
+                        alert("Erro ao salvar: " + e.message);
                         console.error(e);
                     }
                 },
@@ -767,41 +728,32 @@
                 handleHeroUpload(event) {
                     const file = event.target.files[0];
                     if (!file) return;
-                    
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            const canvas = document.getElementById('imageCanvas');
-                            const ctx = canvas.getContext('2d');
-                            const MAX_WIDTH = 1200;
-                            const MAX_HEIGHT = 1200;
-                            let width = img.width; let height = img.height;
-                            if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
-                            else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
-                            canvas.width = width; canvas.height = height;
-                            ctx.drawImage(img, 0, 0, width, height);
-                            // Usar JPEG 0.6 para total compatibilidade e menor payload
-                            this.heroImage = canvas.toDataURL('image/jpeg', 0.6);
-                        };
-                        img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
+                    this.heroFile = file;
+                    this.heroImage = URL.createObjectURL(file);
                 },
 
                 async saveHeroImage() {
-                    if(!this.heroImage) return;
+                    if (!this.heroFile && !this.heroImage) return;
                     try {
-                        const { error } = await supabase.from('site_settings')
-                            .upsert({ key: 'hero_image', value: this.heroImage }, { onConflict: 'key' });
-                        if(error) {
-                            console.error("Supabase Error Details:", error);
-                            throw error;
+                        let finalUrl = this.heroImage;
+                        if (this.heroFile) {
+                            const file = this.heroFile;
+                            const ext = file.name.split('.').pop();
+                            const fileName = `hero/${Date.now()}.${ext}`;
+                            const { error: upErr } = await supabase.storage.from('images').upload(fileName, file, { upsert: true });
+                            if (upErr) throw upErr;
+                            const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
+                            finalUrl = urlData.publicUrl;
                         }
+                        const { error } = await supabase.from('site_settings')
+                            .upsert({ key: 'hero_image', value: finalUrl }, { onConflict: 'key' });
+                        if (error) throw error;
+                        this.heroImage = finalUrl;
+                        this.heroFile = null;
                         alert("Capa principal atualizada com sucesso!");
                     } catch(e) {
                         console.error(e);
-                        alert("Erro ao salvar capa principal. O arquivo pode ser grande demais. Tente uma imagem com tamanho menor em KB ou formato JPG/WEBP.");
+                        alert("Erro ao salvar capa: " + e.message);
                     }
                 },
                 
