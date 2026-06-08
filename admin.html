@@ -260,8 +260,8 @@
 
                 <!-- Capa Principal (Hero Image) -->
                 <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm flex flex-col md:flex-row gap-6 items-start">
-                    <div class="w-full max-w-xs aspect-[4/5] bg-obsidian-950 rounded-sm overflow-hidden border border-obsidian-800 shrink-0">
-                        <img :src="heroImage || 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&q=80&w=600'" class="w-full h-full object-cover grayscale opacity-60">
+                    <div class="w-full max-w-xs bg-obsidian-950 rounded-sm overflow-hidden border border-obsidian-800 shrink-0">
+                        <img :src="heroImage || 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&q=80&w=600'" class="w-full h-auto object-contain grayscale opacity-60 block">
                     </div>
                     <div class="space-y-4 w-full">
                         <h3 class="font-serif text-xl text-white">Foto Principal (Home)</h3>
@@ -303,9 +303,30 @@
 
             <!-- MESSAGES TAB -->
             <div x-show="currentTab === 'messages'" class="space-y-8">
+                
+                <!-- Contact Info Settings -->
+                <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm space-y-4">
+                    <h3 class="text-sm font-semibold text-gold-400 uppercase tracking-widest">Configurações de Contato (Exibidas no Site)</h3>
+                    <form @submit.prevent="saveContactInfo" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="block text-[10px] uppercase tracking-widest text-obsidian-400">WhatsApp / Telefone</label>
+                            <input type="text" x-model="contactPhone" placeholder="Ex: (62) 98181-6251" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-xs text-white">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-[10px] uppercase tracking-widest text-obsidian-400">E-mail de Contato</label>
+                            <input type="email" x-model="contactEmail" placeholder="Ex: contato@lmatelier.com.br" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-xs text-white">
+                        </div>
+                        <div class="md:col-span-2 flex justify-end">
+                            <button type="submit" class="bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-bold uppercase tracking-widest text-[10px] py-3 px-6 rounded-sm transition-colors">
+                                Salvar Contatos
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
                 <div>
                     <h2 class="font-serif text-3xl text-white">Caixa de Entrada</h2>
-                    <p class="text-xs text-obsidian-400">Mensagens enviadas pelo Fale Conosco</p>
+                    <p class="text-xs text-obsidian-400">Mensagens enviadas pelo formulário Fale Conosco</p>
                 </div>
 
                 <div class="space-y-4">
@@ -443,6 +464,8 @@
                 isUploading: false,
                 galleryUpload: { title: '', description: '', base64: '', type: 'image', video_url: '' },
                 heroImage: '',
+                contactPhone: '',
+                contactEmail: '',
 
                 login() {
                     if (this.password === '121518') {
@@ -487,6 +510,10 @@
                     if (settings) {
                         const hero = settings.find(s => s.key === 'hero_image');
                         if (hero) this.heroImage = hero.value;
+                        const phone = settings.find(s => s.key === 'contact_phone');
+                        if (phone) this.contactPhone = phone.value;
+                        const email = settings.find(s => s.key === 'contact_email');
+                        if (email) this.contactEmail = email.value;
                     }
                 },
 
@@ -512,15 +539,23 @@
                         time: parseInt(this.editingService.time)
                     };
                     
-                    if (this.isEditing) {
-                        const srvId = this.services[cat][this.editingIdx].id;
-                        await supabase.from('services').update(payload).eq('id', srvId);
-                    } else {
-                        await supabase.from('services').insert([payload]);
+                    try {
+                        if (this.isEditing) {
+                            const srvId = this.services[cat][this.editingIdx].id;
+                            const { error } = await supabase.from('services').update(payload).eq('id', srvId);
+                            if (error) throw error;
+                        } else {
+                            const { error } = await supabase.from('services').insert([payload]);
+                            if (error) throw error;
+                        }
+                        
+                        await this.loadData();
+                        this.serviceModalOpen = false;
+                        alert("Serviço salvo com sucesso!");
+                    } catch (e) {
+                        console.error(e);
+                        alert("Erro ao salvar serviço. Verifique a conexão.");
                     }
-                    
-                    await this.loadData();
-                    this.serviceModalOpen = false;
                 },
                 async deleteService(category, idx) {
                     if (confirm("Deseja realmente excluir este serviço?")) {
@@ -599,8 +634,8 @@
                             canvas.height = height;
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            // Comprimir a imagem como WEBP com qualidade de 80% para economizar MUITO espaço e evitar limite de payload
-                            this.galleryUpload.base64 = canvas.toDataURL('image/webp', 0.8);
+                            // Usar JPEG ao invés de WEBP para evitar fallback de PNG no Safari que estoura o payload
+                            this.galleryUpload.base64 = canvas.toDataURL('image/jpeg', 0.6);
                         };
                         img.src = e.target.result;
                     };
@@ -624,16 +659,19 @@
                             alert("Insira o link do YouTube.");
                             return;
                         }
+                        
                         let embedUrl = this.galleryUpload.video_url;
-                        if (embedUrl.includes('watch?v=')) {
-                            embedUrl = embedUrl.replace('watch?v=', 'embed/');
-                            embedUrl = embedUrl.split('&')[0];
-                        } else if (embedUrl.includes('youtu.be/')) {
-                            const id = embedUrl.split('youtu.be/')[1].split('?')[0];
-                            embedUrl = 'https://www.youtube.com/embed/' + id;
+                        let videoId = '';
+                        const match = embedUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|.*[?&]v=))([^"&?\/\s]{11})/);
+                        
+                        if (match && match[1]) {
+                            videoId = match[1];
+                            payload.video_url = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&mute=0';
+                            payload.url = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                        } else {
+                            alert("Link do YouTube inválido. Copie e cole a URL correta do vídeo.");
+                            return;
                         }
-                        payload.video_url = embedUrl;
-                        payload.url = `https://img.youtube.com/vi/${embedUrl.split('/').pop()}/maxresdefault.jpg`;
                     }
                     
                     this.isUploading = true;
@@ -670,8 +708,8 @@
                             const canvas = document.getElementById('imageCanvas');
                             const ctx = canvas.getContext('2d');
                             
-                            const MAX_WIDTH = 800;
-                            const MAX_HEIGHT = 800;
+                            const MAX_WIDTH = 1200;
+                            const MAX_HEIGHT = 1200;
                             let width = img.width;
                             let height = img.height;
                             
@@ -691,8 +729,7 @@
                             canvas.height = height;
                             ctx.drawImage(img, 0, 0, width, height);
                             
-                            // Comprimir a imagem para o preview/upload
-                            this.environments[idx].image_url = canvas.toDataURL('image/webp', 0.8);
+                            this.environments[idx].image_url = canvas.toDataURL('image/jpeg', 0.6);
                         };
                         img.src = e.target.result;
                     };
@@ -703,18 +740,20 @@
                     const env = this.environments[idx];
                     try {
                         if (env.id) {
-                            await supabase.from('environments').update({
+                            const { error } = await supabase.from('environments').update({
                                 title: env.title,
                                 subtitle: env.subtitle,
                                 image_url: env.image_url
                             }).eq('id', env.id);
+                            if (error) throw error;
                         } else {
-                            await supabase.from('environments').insert([env]);
+                            const { error } = await supabase.from('environments').insert([env]);
+                            if (error) throw error;
                         }
                         alert("Ambiente atualizado com sucesso!");
                         await this.loadData();
                     } catch (e) {
-                        alert("Erro ao salvar ambiente.");
+                        alert("Erro ao salvar ambiente. A imagem pode ser muito pesada.");
                         console.error(e);
                     }
                 },
@@ -735,14 +774,15 @@
                         img.onload = () => {
                             const canvas = document.getElementById('imageCanvas');
                             const ctx = canvas.getContext('2d');
-                            const MAX_WIDTH = 800;
-                            const MAX_HEIGHT = 1000;
+                            const MAX_WIDTH = 1200;
+                            const MAX_HEIGHT = 1200;
                             let width = img.width; let height = img.height;
                             if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
                             else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
                             canvas.width = width; canvas.height = height;
                             ctx.drawImage(img, 0, 0, width, height);
-                            this.heroImage = canvas.toDataURL('image/webp', 0.8);
+                            // Usar JPEG 0.6 para total compatibilidade e menor payload
+                            this.heroImage = canvas.toDataURL('image/jpeg', 0.6);
                         };
                         img.src = e.target.result;
                     };
@@ -753,12 +793,31 @@
                     if(!this.heroImage) return;
                     try {
                         const { error } = await supabase.from('site_settings')
-                            .upsert({ key: 'hero_image', value: this.heroImage });
-                        if(error) throw error;
+                            .upsert({ key: 'hero_image', value: this.heroImage }, { onConflict: 'key' });
+                        if(error) {
+                            console.error("Supabase Error Details:", error);
+                            throw error;
+                        }
                         alert("Capa principal atualizada com sucesso!");
                     } catch(e) {
                         console.error(e);
-                        alert("Erro ao salvar capa principal.");
+                        alert("Erro ao salvar capa principal. O arquivo pode ser grande demais. Tente uma imagem com tamanho menor em KB ou formato JPG/WEBP.");
+                    }
+                },
+                
+                async saveContactInfo() {
+                    try {
+                        const payloadPhone = { key: 'contact_phone', value: this.contactPhone };
+                        const payloadEmail = { key: 'contact_email', value: this.contactEmail };
+                        
+                        const { error: err1 } = await supabase.from('site_settings').upsert(payloadPhone, { onConflict: 'key' });
+                        const { error: err2 } = await supabase.from('site_settings').upsert(payloadEmail, { onConflict: 'key' });
+                        
+                        if (err1 || err2) throw (err1 || err2);
+                        alert("Configurações de contato atualizadas com sucesso!");
+                    } catch (e) {
+                        console.error(e);
+                        alert("Erro ao atualizar configurações de contato.");
                     }
                 }
             };
