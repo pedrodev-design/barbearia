@@ -208,10 +208,11 @@
 
                 <!-- Coluna Visual: Composição de Imagem em Mosaico Editorial -->
                 <div class="lg:col-span-5 relative mt-8 lg:mt-0">
-                    <div class="relative w-full max-w-md mx-auto aspect-[4/5] bg-obsidian-800 rounded-sm overflow-hidden shadow-2xl border border-obsidian-700 p-4">
+                    <div class="relative w-full max-w-md mx-auto aspect-[4/5] bg-obsidian-800 rounded-sm overflow-hidden shadow-2xl border border-obsidian-700 p-4 group">
+                        <img :src="heroImage || 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&q=80&w=600'" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700">
                         <div class="absolute inset-0 bg-gradient-to-t from-obsidian-900 via-transparent to-transparent z-10"></div>
                         
-                        <!-- Representação Gráfica Minimalista e Altamente Elegante (Luzes de Espelho e Silhuetas em Vetor) -->
+                        <!-- Representação Gráfica Minimalista e Altamente Elegante -->
                         <div class="absolute inset-0 flex flex-col justify-between p-8 z-20">
                             <div class="flex justify-between items-start">
                                 <span class="text-[10px] uppercase tracking-[0.3em] text-gold-400 bg-obsidian-900/80 px-3 py-1.5 rounded-sm backdrop-blur-sm border border-gold-500/10">Estúdio Particular</span>
@@ -379,9 +380,8 @@
                             <span class="text-[10px] tracking-wider text-obsidian-400 uppercase">Depilação Feminina</span>
                         </div>
                         
-                        <div class="grid grid-cols-1 gap-4">
                             <template x-for="(service, idx) in lorenaServices" :key="'lorena-'+idx">
-                                <div class="p-6 bg-obsidian-900 border border-obsidian-850 hover:border-obsidian-700 rounded-sm transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div :class="bookingState.services.some(s => s.name === service.name) ? 'bg-gold-900/20 border-gold-400/50 shadow-[0_0_15px_rgba(201,158,103,0.1)]' : 'bg-obsidian-900 border-obsidian-850 hover:border-obsidian-700'" class="p-6 border rounded-sm transition-all duration-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden group">
                                     <div class="space-y-1 max-w-xl">
                                         <div class="flex items-center gap-3">
                                             <h4 class="font-serif text-lg text-white font-medium" x-text="service.name"></h4>
@@ -389,10 +389,11 @@
                                         <p class="text-xs text-obsidian-400 font-light" x-text="service.desc"></p>
                                         <span class="text-xs text-obsidian-300 block pt-1"><i class="fa-regular fa-clock mr-1"></i> <span x-text="service.time + ' minutos (aprox)'"></span></span>
                                     </div>
-                                    <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                                    <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end shrink-0">
                                         <span class="font-serif text-xl text-gold-300 font-semibold" x-text="'R$ ' + service.price + ',00'"></span>
-                                        <button @click="addServiceToBooking('lorena', service.name, service.price, service.time)" class="border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 px-4 py-2 text-xs tracking-widest uppercase rounded-sm transition-all duration-300">
-                                            Adicionar
+                                        <button @click="addServiceToBooking('lorena', service.name, service.price, service.time)" :class="bookingState.services.some(s => s.name === service.name) ? 'bg-gold-400 text-obsidian-900 shadow-[0_0_10px_rgba(201,158,103,0.3)] border-gold-400' : 'border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 bg-transparent'" class="border px-4 py-2 text-xs tracking-widest uppercase rounded-sm transition-all duration-300 flex items-center gap-2">
+                                            <span x-text="bookingState.services.some(s => s.name === service.name) ? 'Selecionado' : 'Adicionar'"></span>
+                                            <i x-show="bookingState.services.some(s => s.name === service.name)" class="fa-solid fa-check"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -407,9 +408,8 @@
                             <span class="text-[10px] tracking-wider text-obsidian-400 uppercase">Homens e Crianças</span>
                         </div>
                         
-                        <div class="grid grid-cols-1 gap-4">
                             <template x-for="(service, idx) in marcioServices" :key="'marcio-'+idx">
-                                <div class="p-6 bg-obsidian-900 border border-obsidian-850 hover:border-obsidian-700 rounded-sm transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div :class="bookingState.services.some(s => s.name === service.name) ? 'bg-gold-900/20 border-gold-400/50 shadow-[0_0_15px_rgba(201,158,103,0.1)]' : 'bg-obsidian-900 border-obsidian-850 hover:border-obsidian-700'" class="p-6 border rounded-sm transition-all duration-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden group">
                                     <div class="space-y-1 max-w-xl">
                                         <div class="flex items-center gap-3">
                                             <h4 class="font-serif text-lg text-white font-medium" x-text="service.name"></h4>
@@ -417,10 +417,11 @@
                                         <p class="text-xs text-obsidian-400 font-light" x-text="service.desc"></p>
                                         <span class="text-xs text-obsidian-300 block pt-1"><i class="fa-regular fa-clock mr-1"></i> <span x-text="service.time + ' minutos (aprox)'"></span></span>
                                     </div>
-                                    <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                                    <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end shrink-0">
                                         <span class="font-serif text-xl text-gold-300 font-semibold" x-text="'R$ ' + service.price + ',00'"></span>
-                                        <button @click="addServiceToBooking('marcio', service.name, service.price, service.time)" class="border border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 px-4 py-2 text-xs tracking-widest uppercase rounded-sm transition-all duration-300">
-                                            Adicionar
+                                        <button @click="addServiceToBooking('marcio', service.name, service.price, service.time)" :class="bookingState.services.some(s => s.name === service.name) ? 'bg-gold-400 text-obsidian-900 shadow-[0_0_10px_rgba(201,158,103,0.3)] border-gold-400' : 'border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 bg-transparent'" class="border px-4 py-2 text-xs tracking-widest uppercase rounded-sm transition-all duration-300 flex items-center gap-2">
+                                            <span x-text="bookingState.services.some(s => s.name === service.name) ? 'Selecionado' : 'Adicionar'"></span>
+                                            <i x-show="bookingState.services.some(s => s.name === service.name)" class="fa-solid fa-check"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -654,7 +655,7 @@
                                     </div>
                                     <div class="flex justify-between border-t border-obsidian-800 pt-2 mt-2">
                                         <span class="text-obsidian-400 text-xs font-semibold">Total Geral:</span>
-                                        <span class="text-lg font-serif text-gold-300 font-bold" x-text="'R$ ' + totalPrice"></span>
+                                        <span class="text-lg font-serif text-gold-300 font-bold" x-text="'R$ ' + getTotalPrice()"></span>
                                     </div>
                                 </div>
                             </div>
@@ -803,7 +804,8 @@
                     <div @click="openGalleryModal(img)" class="cursor-pointer aspect-square bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800 relative group">
                         <img :src="img.url" class="w-full h-full object-cover group-hover:scale-110 group-hover:opacity-75 transition-all duration-500">
                         <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <i class="fa-solid fa-expand text-2xl text-white drop-shadow-md"></i>
+                            <i x-show="img.type !== 'video'" class="fa-solid fa-expand text-2xl text-white drop-shadow-md"></i>
+                            <i x-show="img.type === 'video'" class="fa-brands fa-youtube text-4xl text-red-600 drop-shadow-md"></i>
                         </div>
                         <div x-show="img.title" class="absolute bottom-0 left-0 right-0 bg-obsidian-900/80 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <span class="text-white text-xs font-semibold block" x-text="img.title"></span>
@@ -826,24 +828,24 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="block text-xs uppercase tracking-widest text-obsidian-300">Nome</label>
-                        <input type="text" x-model="contactForm.name" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                        <input type="text" x-model="contactForm.name" required class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 placeholder-obsidian-400 focus:outline-none focus:ring-1 focus:ring-gold-500 transition-colors">
                     </div>
                     <div class="space-y-2">
                         <label class="block text-xs uppercase tracking-widest text-obsidian-300">Telefone</label>
-                        <input type="tel" x-model="contactForm.phone" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                        <input type="tel" x-model="contactForm.phone" required class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 placeholder-obsidian-400 focus:outline-none focus:ring-1 focus:ring-gold-500 transition-colors">
                     </div>
                 </div>
                 <div class="space-y-2">
                         <label class="block text-xs uppercase tracking-widest text-obsidian-300">E-mail</label>
-                        <input type="email" x-model="contactForm.email" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                        <input type="email" x-model="contactForm.email" required class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 placeholder-obsidian-400 focus:outline-none focus:ring-1 focus:ring-gold-500 transition-colors">
                 </div>
                 <div class="space-y-2">
                         <label class="block text-xs uppercase tracking-widest text-obsidian-300">Assunto</label>
-                        <input type="text" x-model="contactForm.subject" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors">
+                        <input type="text" x-model="contactForm.subject" required class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 placeholder-obsidian-400 focus:outline-none focus:ring-1 focus:ring-gold-500 transition-colors">
                 </div>
                 <div class="space-y-2">
                         <label class="block text-xs uppercase tracking-widest text-obsidian-300">Mensagem</label>
-                        <textarea x-model="contactForm.message" required rows="4" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors"></textarea>
+                        <textarea x-model="contactForm.message" required rows="4" class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 placeholder-obsidian-400 focus:outline-none focus:ring-1 focus:ring-gold-500 transition-colors"></textarea>
                 </div>
                 <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-semibold tracking-widest text-xs uppercase py-4 rounded-sm transition-all shadow-md flex justify-center items-center gap-2">
                     Enviar Mensagem <i class="fa-solid fa-paper-plane"></i>
@@ -891,9 +893,12 @@
             <button @click="closeGalleryModal()" class="absolute top-6 right-6 text-white hover:text-gold-400 z-10"><i class="fa-solid fa-xmark text-3xl"></i></button>
             
             <div @click.stop class="w-full max-w-5xl bg-obsidian-900 flex flex-col md:flex-row rounded-sm overflow-hidden shadow-2xl max-h-[90vh]">
-                <!-- Imagem -->
+                <!-- Imagem ou Vídeo -->
                 <div class="w-full md:w-3/5 bg-black flex items-center justify-center relative min-h-[40vh] md:min-h-[auto]">
-                    <img :src="selectedGalleryImg?.url" class="max-w-full max-h-full object-contain">
+                    <img x-show="selectedGalleryImg?.type !== 'video'" :src="selectedGalleryImg?.url" class="max-w-full max-h-full object-contain">
+                    <template x-if="selectedGalleryImg?.type === 'video'">
+                        <iframe :src="selectedGalleryImg?.video_url" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full aspect-video"></iframe>
+                    </template>
                 </div>
                 
                 <!-- Comentários e Info -->
@@ -1123,6 +1128,25 @@
     </main>
 
     <footer class="bg-obsidian-950 border-t border-obsidian-850 pt-20 pb-32 sm:pb-12 px-6">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+            
+            <!-- Coluna 1: Marca -->
+            <div class="space-y-4">
+                <a href="#" class="flex flex-col group inline-block">
+                    <span class="font-serif text-2xl tracking-[0.2em] text-white group-hover:text-gold-300 transition-colors duration-300 font-bold">L&M</span>
+                    <span class="text-[9px] tracking-[0.4em] uppercase text-gold-400 font-sans mt-0.5">Atelier de Beleza</span>
+                </a>
+                <p class="text-xs text-obsidian-300 font-light leading-relaxed">
+                    A união meticulosa de dois mundos de alta performance estética em Trindade.
+                </p>
+            </div>
+
+            <!-- Coluna 2: Horários -->
+            <div class="space-y-4">
+                <h4 class="font-serif text-sm uppercase tracking-widest text-gold-400 font-semibold">Horários</h4>
+                <div class="space-y-2 text-xs text-obsidian-300 font-light">
+                    <p class="flex justify-between"><span>Ter - Sáb:</span> <span class="text-white">09:00 - 20:00</span></p>
+                    <p class="flex justify-between"><span>Segunda:</span> <span class="text-obsidian-500">Fechado</span></p>
                     <p class="flex justify-between"><span>Domingo:</span> <span class="text-obsidian-500">Fechado</span></p>
                 </div>
             </div>
@@ -1400,12 +1424,12 @@
                     }, 4000);
                 },
 
-                // Adicionar Serviço Selecionado ao Agendamento
+                // Adicionar ou Remover Serviço Selecionado ao Agendamento
                 addServiceToBooking(professional, name, price, duration) {
-                    // Prevenir duplicação no mesmo agendamento
-                    const alreadySelected = this.bookingState.services.some(svc => svc.name === name);
-                    if (alreadySelected) {
-                        this.triggerToast(`"${name}" já foi adicionado ao seu agendamento.`);
+                    const idx = this.bookingState.services.findIndex(svc => svc.name === name);
+                    if (idx > -1) {
+                        this.bookingState.services.splice(idx, 1);
+                        this.triggerToast(`"${name}" removido.`);
                         return;
                     }
 
@@ -1416,7 +1440,7 @@
                         duration
                     });
 
-                    this.triggerToast(`"${name}" adicionado. Role até o agendador para concluir.`);
+                    this.triggerToast(`"${name}" selecionado. Role até o agendador para concluir.`);
                 },
 
                 // Remover Serviço do Agendamento
@@ -1427,12 +1451,12 @@
                 },
 
                 // Getters para soma de valores
-                get totalPrice() {
-                    return this.bookingState.services.reduce((acc, svc) => acc + svc.price, 0);
+                getTotalPrice() {
+                    return this.bookingState.services.reduce((acc, svc) => acc + parseInt(svc.price || 0), 0);
                 },
 
-                get totalDuration() {
-                    return this.bookingState.services.reduce((acc, svc) => acc + svc.duration, 0);
+                getTotalDuration() {
+                    return this.bookingState.services.reduce((acc, svc) => acc + parseInt(svc.duration || 0), 0);
                 },
 
                 // Gerador dinâmico de horários — consulta o banco para evitar conflitos

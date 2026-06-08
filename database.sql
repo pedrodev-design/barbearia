@@ -77,3 +77,18 @@ WHERE NOT EXISTS (SELECT 1 FROM environments WHERE "order" = 2);
 INSERT INTO environments (subtitle, title, image_url, "order")
 SELECT 'Bem-Vindo', 'Atendimento Single Malt', 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&q=80&w=600', 3
 WHERE NOT EXISTS (SELECT 1 FROM environments WHERE "order" = 3);
+
+-- Tabela de Configurações Gerais do Site
+CREATE TABLE IF NOT EXISTS site_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+-- Insere imagem da capa padrão caso não exista
+INSERT INTO site_settings (key, value) 
+VALUES ('hero_image', 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&q=80&w=600') 
+ON CONFLICT (key) DO NOTHING;
+
+-- Suporte a Vídeos na Galeria
+ALTER TABLE gallery ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'image';
+ALTER TABLE gallery ADD COLUMN IF NOT EXISTS video_url TEXT;
