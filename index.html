@@ -84,29 +84,79 @@
             color: #F4F4F4;
             overflow-x: hidden;
         }
-        
-        /* Personalização refinada da barra de rolagem para combinar com o tom escuro premium */
-        ::-webkit-scrollbar {
-            width: 8px;
+
+        /* Scrollbar refinada */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0B0C0E; }
+        ::-webkit-scrollbar-thumb { background: #2A2B32; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #C99E67; }
+
+        /* Esconder scrollbar */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Nav links com underline animado */
+        nav a {
+            position: relative;
         }
-        ::-webkit-scrollbar-track {
-            background: #0B0C0E;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #2A2B32;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 1px;
             background: #C99E67;
+            transition: width 0.3s ease;
+        }
+        nav a:hover::after {
+            width: 100%;
         }
 
-        /* Ocultar barra de rolagem onde necessário (ex: abas do agendador no mobile) */
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
+        /* Smooth scroll nativo */
+        html { scroll-behavior: smooth; }
+
+        /* Focus style acessível */
+        *:focus-visible {
+            outline: 2px solid #C99E67;
+            outline-offset: 3px;
+            border-radius: 2px;
         }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+
+        /* Gallery card hover */
+        .gallery-card { transition: transform 0.4s ease, box-shadow 0.4s ease; }
+        .gallery-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+
+        /* Gradient de texto dourado */
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #C99E67, #e8c890, #C99E67);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Linha decorativa animada */
+        .gold-line {
+            background: linear-gradient(90deg, transparent, #C99E67, transparent);
+            height: 1px;
+        }
+
+        /* Shimmer para imagens carregando */
+        .img-skeleton {
+            background: linear-gradient(90deg, #15161A 25%, #2A2B32 50%, #15161A 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Glassmorphism para cards */
+        .glass-card {
+            background: rgba(21, 22, 26, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(201, 158, 103, 0.08);
         }
     </style>
 </head>
@@ -114,59 +164,94 @@
 
 
 
-    <header class="sticky top-0 z-50 backdrop-blur-md bg-obsidian-900/85 border-b border-obsidian-800 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
-            <a href="#" class="flex flex-col group">
-                <span class="font-serif text-2xl tracking-[0.2em] text-white group-hover:text-gold-300 transition-colors duration-300 font-bold">L&M</span>
-                <span class="text-[9px] tracking-[0.4em] uppercase text-gold-400 font-sans mt-0.5">Atelier de Beleza</span>
+    <header class="sticky top-0 z-50 backdrop-blur-lg bg-obsidian-900/90 border-b border-obsidian-800/60 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-8">
+            <!-- Logo -->
+            <a href="#" class="flex flex-col shrink-0 group">
+                <span class="font-serif text-xl tracking-[0.25em] text-white group-hover:text-gold-300 transition-colors duration-300 font-bold">L&M</span>
+                <span class="text-[8px] tracking-[0.4em] uppercase text-gold-400 font-sans mt-0.5">Atelier de Beleza</span>
             </a>
             
-            <nav class="hidden md:flex items-center space-x-10 text-xs tracking-widest uppercase font-medium">
-                <a href="#universo" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">O Universo</a>
-                <a href="#profissionais" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Lorena & Márcio</a>
-                <a href="#experiencias" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Menu de Serviços</a>
-                <a href="#depoimentos" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Avaliações</a>
-                <a href="#galeria" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Galeria</a>
-                <a href="#contato" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300">Contato</a>
-                <a href="admin.html" class="text-gold-400 hover:text-white transition-colors duration-300 font-bold">Painel de Adm</a>
-                <button @click="openAppointmentsModal()" class="relative text-obsidian-300 hover:text-gold-300 transition-colors duration-300 flex items-center gap-2">
-                    Meus Agendamentos
-                    <span x-show="savedAppointments.length > 0" class="absolute -top-2 -right-3 bg-gold-400 text-obsidian-900 rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold" x-text="savedAppointments.length"></span>
-                </button>
+            <!-- Nav Desktop -->
+            <nav class="hidden lg:flex items-center gap-7 text-[10px] tracking-widest uppercase font-medium flex-1 justify-center">
+                <a href="#universo" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300 whitespace-nowrap">O Universo</a>
+                <a href="#profissionais" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300 whitespace-nowrap">Lorena & Márcio</a>
+                <a href="#experiencias" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300 whitespace-nowrap">Serviços</a>
+                <a href="#depoimentos" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300 whitespace-nowrap">Avaliações</a>
+                <a href="#galeria" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300 whitespace-nowrap">Galeria</a>
+                <a href="#contato" class="text-obsidian-300 hover:text-gold-300 transition-colors duration-300 whitespace-nowrap">Contato</a>
             </nav>
 
-            <div class="flex items-center space-x-4">
-                <a href="#agendador" @click="scrollToSection('agendador')" class="hidden sm:inline-block bg-gold-500 hover:bg-gold-600 text-obsidian-900 text-xs tracking-widest uppercase font-semibold py-3.5 px-7 rounded-sm shadow-xl transition-all duration-300">
-                    Reservar Horário
+            <!-- Ações à direita -->
+            <div class="flex items-center gap-3 shrink-0">
+                <!-- Meus Agendamentos (ícone) -->
+                <button @click="openAppointmentsModal()" class="relative hidden sm:flex items-center gap-1.5 text-obsidian-400 hover:text-gold-300 transition-colors duration-300 text-[10px] uppercase tracking-widest">
+                    <i class="fa-regular fa-calendar text-base"></i>
+                    <span class="hidden xl:inline">Agendamentos</span>
+                    <span x-show="savedAppointments.length > 0" class="absolute -top-1.5 -right-1.5 bg-gold-400 text-obsidian-900 rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold" x-text="savedAppointments.length"></span>
+                </button>
+
+                <!-- Admin link (discreto) -->
+                <a href="admin.html" class="hidden md:flex items-center gap-1.5 text-obsidian-500 hover:text-gold-400 transition-colors duration-300 text-[9px] uppercase tracking-widest">
+                    <i class="fa-solid fa-sliders text-sm"></i>
+                    <span class="hidden xl:inline">Adm</span>
+                </a>
+
+                <!-- CTA Reservar -->
+                <a href="#agendador" @click="scrollToSection('agendador')" class="hidden sm:inline-flex items-center gap-2 bg-gold-500 hover:bg-gold-400 text-obsidian-900 text-[10px] tracking-widest uppercase font-bold py-3 px-6 rounded-sm shadow-lg transition-all duration-300 whitespace-nowrap">
+                    Reservar <i class="fa-solid fa-arrow-right text-[9px]"></i>
                 </a>
                 
                 <!-- Menu Mobile (Trigger) -->
-                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-white hover:text-gold-400 p-2 focus:outline-none" aria-label="Menu">
-                    <i class="fa-solid fa-bars-staggered text-xl"></i>
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden text-white hover:text-gold-400 p-2 focus:outline-none" aria-label="Menu">
+                    <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark text-xl' : 'fa-bars-staggered text-xl'"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Menu responsivo para mobile -->
-        <div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-4" class="md:hidden bg-obsidian-900 border-b border-obsidian-800 px-6 py-8 space-y-4 font-sans text-sm tracking-widest uppercase text-center absolute w-full left-0">
-            <a href="#universo" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">O Universo</a>
-            <a href="#profissionais" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Lorena & Márcio</a>
-            <a href="#experiencias" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Menu de Serviços</a>
-            <a href="#depoimentos" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Avaliações</a>
-            <a href="#galeria" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Galeria</a>
-            <a href="#contato" @click="mobileMenuOpen = false" class="block py-2 text-obsidian-200 hover:text-gold-300">Contato</a>
-            <a href="admin.html" class="block py-2 text-gold-400 hover:text-white font-bold">Painel de Adm</a>
-            <button @click="mobileMenuOpen = false; openAppointmentsModal()" class="w-full py-2 text-obsidian-200 hover:text-gold-300 flex justify-center items-center gap-2">
-                Meus Agendamentos
-                <span x-show="savedAppointments.length > 0" class="bg-gold-400 text-obsidian-900 rounded-full px-2 py-0.5 text-[9px] font-bold" x-text="savedAppointments.length"></span>
-            </button>
-            <a href="#agendador" @click="mobileMenuOpen = false; scrollToSection('agendador')" class="block bg-gold-400 text-obsidian-900 font-semibold py-3 rounded-sm">
-                Reservar Horário
+        <!-- Menu Mobile -->
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition ease-out duration-200" 
+             x-transition:enter-start="opacity-0 -translate-y-2" 
+             x-transition:enter-end="opacity-100 translate-y-0" 
+             x-transition:leave="transition ease-in duration-150" 
+             x-transition:leave-start="opacity-100 translate-y-0" 
+             x-transition:leave-end="opacity-0 -translate-y-2" 
+             class="lg:hidden bg-obsidian-900/98 backdrop-blur-lg border-b border-obsidian-800 px-6 py-6 space-y-1 font-sans text-sm tracking-widest uppercase absolute w-full left-0 shadow-2xl">
+            <a href="#universo" @click="mobileMenuOpen = false" class="flex items-center gap-3 py-3 text-obsidian-200 hover:text-gold-300 border-b border-obsidian-800/50">
+                <i class="fa-solid fa-star-of-life text-gold-500 text-[8px] w-3"></i> O Universo
+            </a>
+            <a href="#profissionais" @click="mobileMenuOpen = false" class="flex items-center gap-3 py-3 text-obsidian-200 hover:text-gold-300 border-b border-obsidian-800/50">
+                <i class="fa-solid fa-star-of-life text-gold-500 text-[8px] w-3"></i> Lorena & Márcio
+            </a>
+            <a href="#experiencias" @click="mobileMenuOpen = false" class="flex items-center gap-3 py-3 text-obsidian-200 hover:text-gold-300 border-b border-obsidian-800/50">
+                <i class="fa-solid fa-star-of-life text-gold-500 text-[8px] w-3"></i> Menu de Serviços
+            </a>
+            <a href="#depoimentos" @click="mobileMenuOpen = false" class="flex items-center gap-3 py-3 text-obsidian-200 hover:text-gold-300 border-b border-obsidian-800/50">
+                <i class="fa-solid fa-star-of-life text-gold-500 text-[8px] w-3"></i> Avaliações
+            </a>
+            <a href="#galeria" @click="mobileMenuOpen = false" class="flex items-center gap-3 py-3 text-obsidian-200 hover:text-gold-300 border-b border-obsidian-800/50">
+                <i class="fa-solid fa-star-of-life text-gold-500 text-[8px] w-3"></i> Galeria
+            </a>
+            <a href="#contato" @click="mobileMenuOpen = false" class="flex items-center gap-3 py-3 text-obsidian-200 hover:text-gold-300 border-b border-obsidian-800/50">
+                <i class="fa-solid fa-star-of-life text-gold-500 text-[8px] w-3"></i> Contato
+            </a>
+            <div class="flex gap-3 pt-4">
+                <button @click="mobileMenuOpen = false; openAppointmentsModal()" class="flex-1 flex justify-center items-center gap-2 py-3 text-obsidian-200 hover:text-gold-300 border border-obsidian-700 rounded-sm text-xs">
+                    <i class="fa-regular fa-calendar"></i> Agendamentos
+                    <span x-show="savedAppointments.length > 0" class="bg-gold-400 text-obsidian-900 rounded-full px-1.5 py-0.5 text-[9px] font-bold" x-text="savedAppointments.length"></span>
+                </button>
+                <a href="#agendador" @click="mobileMenuOpen = false; scrollToSection('agendador')" class="flex-1 flex justify-center items-center bg-gold-400 text-obsidian-900 font-bold text-xs py-3 rounded-sm">
+                    Reservar Horário
+                </a>
+            </div>
+            <a href="admin.html" class="block text-center pt-2 text-obsidian-500 hover:text-gold-400 text-[9px] uppercase tracking-widest">
+                Painel Administrativo
             </a>
         </div>
     </header>
 
-    <main class="flex-grow z-10">
+    <main class="flex-grow">
         
         <section id="universo" class="relative min-h-[calc(100vh-6rem)] flex items-center py-20 px-6 overflow-hidden">
             <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -798,15 +883,16 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <template x-for="(img, idx) in gallery" :key="idx">
-                    <div @click="openGalleryModal(img)" class="cursor-pointer aspect-square bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800 relative group">
+                    <div @click="openGalleryModal(img)" class="gallery-card cursor-pointer aspect-square bg-obsidian-900 rounded-sm overflow-hidden border border-obsidian-800 relative group">
                         <img :src="img.url" class="w-full h-full object-cover group-hover:scale-110 group-hover:opacity-75 transition-all duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-obsidian-950/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                         <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                             <i x-show="img.type !== 'video'" class="fa-solid fa-expand text-2xl text-white drop-shadow-md"></i>
-                            <i x-show="img.type === 'video'" class="fa-brands fa-youtube text-4xl text-red-600 drop-shadow-md"></i>
+                            <i x-show="img.type === 'video'" class="fa-brands fa-youtube text-4xl text-red-500 drop-shadow-md"></i>
                         </div>
-                        <div x-show="img.title || img.description" class="absolute bottom-0 left-0 right-0 bg-obsidian-900/80 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex flex-col gap-1">
-                            <span x-show="img.title" class="text-white text-xs font-semibold block" x-text="img.title"></span>
-                            <span x-show="img.description" class="text-obsidian-300 text-[10px] block line-clamp-2" x-text="img.description"></span>
+                        <div x-show="img.title || img.description" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-obsidian-950 to-transparent px-4 pb-4 pt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                            <span x-show="img.title" class="text-white text-xs font-semibold block truncate" x-text="img.title"></span>
+                            <span x-show="img.description" class="text-obsidian-300 text-[10px] block line-clamp-1 mt-0.5" x-text="img.description"></span>
                         </div>
                     </div>
                 </template>
@@ -896,24 +982,24 @@
         </div>
 
         <!-- Gallery Modal with Comments -->
-        <div x-show="galleryModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/95 z-[70] backdrop-blur-md flex items-center justify-center p-4 sm:p-10">
-            <button @click="closeGalleryModal()" class="absolute top-6 right-6 text-white hover:text-gold-400 z-10"><i class="fa-solid fa-xmark text-3xl"></i></button>
+        <div x-show="galleryModalOpen" style="display: none;" @click="closeGalleryModal()" class="fixed inset-0 bg-obsidian-950/95 z-[70] backdrop-blur-md flex items-center justify-center p-4 sm:p-10">
+            <button @click="closeGalleryModal()" class="absolute top-4 right-4 sm:top-6 sm:right-6 text-white hover:text-gold-400 z-50 bg-obsidian-900/50 p-2 rounded-full w-12 h-12 flex items-center justify-center backdrop-blur-md"><i class="fa-solid fa-xmark text-2xl"></i></button>
             
-            <div @click.stop class="w-full max-w-5xl bg-obsidian-900 flex flex-col md:flex-row rounded-sm overflow-hidden shadow-2xl max-h-[90vh]">
+            <div @click.stop class="w-full max-w-6xl bg-obsidian-900 flex flex-col md:flex-row rounded-sm overflow-hidden shadow-2xl h-[90vh]">
                 <!-- Imagem ou Vídeo -->
-                <div class="w-full md:w-3/5 bg-black flex items-center justify-center relative min-h-[40vh] md:min-h-[auto]">
-                    <img x-show="selectedGalleryImg?.type !== 'video'" :src="selectedGalleryImg?.url" class="max-w-full max-h-full object-contain">
+                <div class="w-full md:w-3/5 bg-black relative flex items-center justify-center h-1/2 md:h-full shrink-0">
+                    <img x-show="selectedGalleryImg?.type !== 'video'" :src="selectedGalleryImg?.url" class="absolute inset-0 w-full h-full object-contain p-2">
                     <template x-if="selectedGalleryImg?.type === 'video'">
-                        <iframe :src="safeVideoUrl(selectedGalleryImg?.video_url)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full aspect-video"></iframe>
+                        <iframe :src="safeVideoUrl(selectedGalleryImg?.video_url)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="absolute inset-0 w-full h-full"></iframe>
                     </template>
                 </div>
                 
                 <!-- Comentários e Info -->
-                <div class="w-full md:w-2/5 flex flex-col h-[50vh] md:h-auto max-h-full md:max-h-[90vh] bg-obsidian-900 border-l border-obsidian-800 relative">
+                <div class="w-full md:w-2/5 flex flex-col h-1/2 md:h-full bg-obsidian-900 border-l border-obsidian-800 relative">
                     
                     <div class="p-6 border-b border-obsidian-850 shrink-0">
-                        <h3 class="font-serif text-2xl text-white mb-2" x-text="selectedGalleryImg?.title || 'Foto do Atelier'"></h3>
-                        <p class="text-sm text-obsidian-300 font-light" x-text="selectedGalleryImg?.description"></p>
+                        <h3 class="font-serif text-2xl text-white mb-2 line-clamp-2" x-text="selectedGalleryImg?.title || 'Foto do Atelier'"></h3>
+                        <p class="text-sm text-obsidian-300 font-light line-clamp-3" x-text="selectedGalleryImg?.description"></p>
                     </div>
 
                     <!-- Lista de Comentários -->
@@ -926,7 +1012,7 @@
                                     <span x-text="c.username"></span>
                                     <span class="text-[9px] text-obsidian-500" x-text="formatDate(c.created_at?.split('T')[0])"></span>
                                 </p>
-                                <p class="text-obsidian-200 text-sm font-light" x-text="c.comment"></p>
+                                <p class="text-obsidian-200 text-sm font-light break-words" x-text="c.comment"></p>
                             </div>
                         </template>
                         
@@ -1410,6 +1496,25 @@
                     } finally {
                         this.submittingComment = false;
                     }
+                },
+
+                safeVideoUrl(url) {
+                    if (!url) return '';
+                    let videoId = '';
+                    try {
+                        if (url.includes('youtube.com/watch?v=')) {
+                            videoId = new URL(url).searchParams.get('v');
+                        } else if (url.includes('youtube.com/shorts/')) {
+                            videoId = url.split('shorts/')[1].split('?')[0];
+                        } else if (url.includes('youtu.be/')) {
+                            videoId = url.split('youtu.be/')[1].split('?')[0];
+                        } else if (url.includes('youtube.com/embed/')) {
+                            videoId = url.split('embed/')[1].split('?')[0];
+                        }
+                    } catch (e) {
+                        return url; // fallback
+                    }
+                    return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : url;
                 },
 
                 // Rolagem suave para seções específicas
