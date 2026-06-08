@@ -206,17 +206,17 @@
                     </div>
                 </div>
 
-                <!-- Coluna Visual: Composição de Imagem em Mosaico Editorial -->
+                <!-- Coluna Visual: Foto da Home -->
                 <div class="lg:col-span-5 relative mt-8 lg:mt-0">
-                    <div class="relative w-full max-w-md mx-auto bg-obsidian-800 rounded-sm overflow-hidden shadow-2xl border border-obsidian-700 group">
-                        <img :src="heroImage || 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&q=80&w=600'" class="w-full h-auto object-contain grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700 block">
+                    <div class="relative w-full max-w-md mx-auto bg-obsidian-800 rounded-sm overflow-hidden shadow-2xl border border-obsidian-700 group" style="min-height: 420px;">
+                        <img :src="heroImage || 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&q=80&w=600'" 
+                             class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:scale-105 group-hover:opacity-50 transition-all duration-700">
                         <div class="absolute inset-0 bg-gradient-to-t from-obsidian-900 via-obsidian-900/40 to-transparent z-10 pointer-events-none"></div>
                         
-                        <!-- Representação Gráfica Minimalista e Altamente Elegante -->
                         <div class="absolute inset-0 flex flex-col justify-between p-8 z-20 pointer-events-none">
                             <div class="flex justify-between items-start">
                                 <span class="text-[10px] uppercase tracking-[0.3em] text-gold-400 bg-obsidian-900/80 px-3 py-1.5 rounded-sm backdrop-blur-sm border border-gold-500/10 shadow-sm">Estúdio Particular</span>
-                                <span class="text-xs text-obsidian-200 font-serif italic bg-obsidian-900/60 px-2 py-1 rounded-sm shadow-sm">São Paulo - SP</span>
+                                <span class="text-xs text-obsidian-200 font-serif italic bg-obsidian-900/60 px-2 py-1 rounded-sm shadow-sm">Trindade - GO</span>
                             </div>
                             
                             <div class="space-y-3">
@@ -225,15 +225,12 @@
                                 <p class="text-xs text-white leading-relaxed font-light drop-shadow-md">Cabines individuais acusticamente isoladas para máxima discrição e absoluto relaxamento.</p>
                             </div>
                         </div>
-
-
-
-
                     </div>
                 </div>
 
             </div>
         </section>
+
 
         <section id="profissionais" class="py-24 px-6 bg-obsidian-900/50 border-y border-obsidian-850 relative">
             <div class="max-w-7xl mx-auto">
@@ -1256,6 +1253,7 @@
 
                 contactPhone: '',
                 contactEmail: '',
+                heroImage: '',
 
                 // Horários Gerados Dinamicamente
                 availableSlots: [],
@@ -1304,13 +1302,15 @@
                         const { data: envs } = await supabase.from('environments').select('*').order('order', { ascending: true });
                         if (envs && envs.length > 0) this.environments = envs;
 
-                        // Buscar configurações de contato
+                        // Buscar configurações de site (contatos e capa)
                         const { data: settings } = await supabase.from('site_settings').select('*');
                         if (settings) {
                             const phone = settings.find(s => s.key === 'contact_phone');
                             if (phone) this.contactPhone = phone.value;
                             const email = settings.find(s => s.key === 'contact_email');
                             if (email) this.contactEmail = email.value;
+                            const hero = settings.find(s => s.key === 'hero_image');
+                            if (hero) this.heroImage = hero.value;
                         }
 
                     } catch (e) {
