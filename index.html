@@ -532,186 +532,74 @@
           <div class="text-center max-w-2xl mx-auto space-y-4 mb-16">
             <span
               class="text-gold-400 text-xs tracking-widest uppercase font-medium"
-              >Nossa Equipe</span
-            >
+              x-text="teamSectionLabel"
+            ></span>
             <h2
               class="font-serif text-3xl sm:text-5xl text-white leading-tight"
-            >
-              Mãos esculpidas na tradição do cuidado sob medida
-            </h2>
+              x-text="teamSectionTitle"
+            ></h2>
             <div class="w-16 h-[1px] bg-gold-400 mx-auto mt-4"></div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-            <!-- Bloco Lorena -->
-            <div
-              class="bg-obsidian-900 border border-obsidian-800 p-8 sm:p-12 rounded-sm relative group hover:border-gold-500/20 transition-all duration-500 hover:-translate-y-1"
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12"
+          >
+            <template
+              x-for="(member, idx) in visibleTeamMembers"
+              :key="member.id || idx"
             >
               <div
-                class="absolute top-0 right-0 p-6 font-serif text-6xl text-gold-500/10 font-bold select-none group-hover:text-gold-500/15 transition-colors"
+                class="bg-obsidian-900 border border-obsidian-800 p-8 sm:p-12 rounded-sm relative group hover:border-gold-500/20 transition-all duration-500 hover:-translate-y-1"
               >
-                01
-              </div>
-              <div class="flex items-center space-x-4 mb-6">
                 <div
-                  class="w-12 h-12 rounded-full border border-gold-400 flex items-center justify-center text-gold-400"
-                >
-                  <i class="fa-solid fa-leaf text-lg"></i>
-                </div>
-                <div>
-                  <h3 class="font-serif text-2xl text-white font-semibold">
-                    Lorena
-                  </h3>
-                  <p
-                    class="text-[10px] uppercase tracking-widest text-gold-400 font-sans"
+                  class="absolute top-0 right-0 p-6 font-serif text-6xl text-gold-500/10 font-bold select-none group-hover:text-gold-500/15 transition-colors"
+                  x-text="String(idx + 1).padStart(2, '0')"
+                ></div>
+                <div class="flex items-center space-x-4 mb-6">
+                  <div
+                    class="w-12 h-12 rounded-full border border-gold-400 flex items-center justify-center text-gold-400 overflow-hidden shrink-0"
                   >
-                    Estética & Depilação Avançada
-                  </p>
+                    <img
+                      x-show="member.image_url"
+                      :src="member.image_url"
+                      class="w-full h-full object-cover"
+                      :alt="member.name"
+                    />
+                    <i
+                      x-show="!member.image_url"
+                      :class="'fa-solid ' + (member.icon || 'fa-user') + ' text-lg'"
+                    ></i>
+                  </div>
+                  <div>
+                    <h3
+                      class="font-serif text-2xl text-white font-semibold"
+                      x-text="member.name"
+                    ></h3>
+                    <p
+                      class="text-[10px] uppercase tracking-widest text-gold-400 font-sans"
+                      x-text="member.role"
+                    ></p>
+                  </div>
                 </div>
-              </div>
-              <p class="text-obsidian-300 font-light leading-relaxed mb-6">
-                Especializada em técnicas francesas de depilação orgânica,
-                Lorena transformou a depilação tradicional em um ritual de
-                bem-estar. Utilizando ceras de ativos botânicos desenvolvidas
-                artesanalmente para peles sensíveis, ela foca no alívio de dor,
-                na hidratação pós-remoção e na privacidade absoluta de cada
-                cliente, seja feminina ou geral.
-              </p>
-              <div class="space-y-3 pt-4 border-t border-obsidian-850">
-                <div
-                  class="flex items-center space-x-2 text-xs text-obsidian-300"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                  <span>Depilação com Cera Orgânica Calmante</span>
-                </div>
-                <div
-                  class="flex items-center space-x-2 text-xs text-obsidian-300"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                  <span>Tratamentos de Foliculite de alta performance</span>
-                </div>
-                <div
-                  class="flex items-center space-x-2 text-xs text-obsidian-300"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                  <span>Design de Sobrancelhas de Visagismo</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Bloco Márcio -->
-            <div
-              class="bg-obsidian-900 border border-obsidian-800 p-8 sm:p-12 rounded-sm relative group hover:border-gold-500/20 transition-all duration-500 hover:-translate-y-1"
-            >
-              <div
-                class="absolute top-0 right-0 p-6 font-serif text-6xl text-gold-500/10 font-bold select-none group-hover:text-gold-500/15 transition-colors"
-              >
-                02
-              </div>
-              <div class="flex items-center space-x-4 mb-6">
-                <div
-                  class="w-12 h-12 rounded-full border border-gold-400 flex items-center justify-center text-gold-400"
-                >
-                  <i class="fa-solid fa-scissors text-lg"></i>
-                </div>
-                <div>
-                  <h3 class="font-serif text-2xl text-white font-semibold">
-                    Márcio
-                  </h3>
-                  <p
-                    class="text-[10px] uppercase tracking-widest text-gold-400 font-sans"
+                <p
+                  class="text-obsidian-300 font-light leading-relaxed mb-6"
+                  x-text="member.bio"
+                ></p>
+                <div class="space-y-3 pt-4 border-t border-obsidian-850">
+                  <template
+                    x-for="highlight in parseTeamHighlights(member.highlights)"
+                    :key="highlight"
                   >
-                    Barbeiro & Corporal Masculino
-                  </p>
+                    <div
+                      class="flex items-center space-x-2 text-xs text-obsidian-300"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
+                      <span x-text="highlight"></span>
+                    </div>
+                  </template>
                 </div>
               </div>
-              <p class="text-obsidian-300 font-light leading-relaxed mb-6">
-                Márcio combina a navalha clássica italiana e as tesouras de alta
-                precisão com o que há de mais moderno em estética de pelos
-                masculinos. Além de barbas terapêuticas esculpidas à toalha
-                quente, ele é pioneiro em depilação masculina integral e
-                corporal com técnicas que reduzem drasticamente o desconforto e
-                garantem um visual limpo e polido.
-              </p>
-              <div class="space-y-3 pt-4 border-t border-obsidian-850">
-                <div
-                  class="flex items-center space-x-2 text-xs text-obsidian-300"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                  <span
-                    >Barboterapia com Toalhas Quentes e Óleos Essenciais</span
-                  >
-                </div>
-                <div
-                  class="flex items-center space-x-2 text-xs text-obsidian-300"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                  <span>Cortes Clássicos e Contemporâneos</span>
-                </div>
-                <div
-                  class="flex items-center space-x-2 text-xs text-obsidian-300"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                  <span>Depilação Corporal Masculina (total discrição)</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Bloco Giovanna -->
-            <div
-              class="bg-obsidian-900 border border-obsidian-800 p-8 sm:p-12 rounded-sm relative group hover:border-gold-500/20 transition-all duration-500 hover:-translate-y-1"
-            >
-              <div
-                class="absolute top-0 right-0 p-6 font-serif text-6xl text-gold-500/10 font-bold select-none group-hover:text-gold-500/15 transition-colors"
-              >
-                03
-              </div>
-              <div class="flex items-center space-x-4 mb-6">
-                <div
-                  class="w-12 h-12 rounded-full border border-gold-400 flex items-center justify-center text-gold-400"
-                >
-                  <i class="fa-solid fa-clipboard-check text-lg"></i>
-                </div>
-                <div>
-                  <h3 class="font-serif text-2xl text-white font-semibold">
-                    Giovanna
-                  </h3>
-                  <p
-                    class="text-[10px] uppercase tracking-widest text-gold-400 font-sans"
-                  >
-                    Administração, Reparo de Equipamentos e Esterilização de
-                    Equipamentos
-                  </p>
-                </div>
-              </div>
-              <p class="text-obsidian-300 font-light leading-relaxed mb-6">
-                Giovanna garante a excelência nos bastidores do atelier.
-                Especialista na manutenção técnica dos equipamentos de ponta,
-                também supervisiona rigorosamente a esterilização de grau
-                médico, oferecendo o mais alto padrão de higiene e gestão do
-                ambiente.
-              </p>
-              <div class="space-y-3 pt-4 border-t border-obsidian-850">
-                <div
-                  class="flex items-center space-x-2 text-xs text-obsidian-300"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                  <span>Gestão Administrativa</span>
-                </div>
-                <div
-                  class="flex items-center space-x-2 text-xs text-obsidian-300"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                  <span>Reparo de Equipamentos</span>
-                </div>
-                <div
-                  class="flex items-center space-x-2 text-xs text-obsidian-300"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-gold-400"></span>
-                  <span>Esterilização de Instrumentais</span>
-                </div>
-              </div>
-            </div>
+            </template>
           </div>
         </div>
       </section>
@@ -2395,6 +2283,51 @@
     <script>
       // Dados iniciais agora gerenciados pelo Supabase (ver database.sql)
 
+      const DEFAULT_TEAM_MEMBERS = [
+        {
+          id: 1,
+          name: "Lorena",
+          role: "Estética & Depilação Avançada",
+          bio: "Especializada em técnicas francesas de depilação orgânica, Lorena transformou a depilação tradicional em um ritual de bem-estar. Utilizando ceras de ativos botânicos desenvolvidas artesanalmente para peles sensíveis, ela foca no alívio de dor, na hidratação pós-remoção e na privacidade absoluta de cada cliente, seja feminina ou geral.",
+          icon: "fa-leaf",
+          highlights: [
+            "Depilação com Cera Orgânica Calmante",
+            "Tratamentos de Foliculite de alta performance",
+            "Design de Sobrancelhas de Visagismo",
+          ],
+          order: 1,
+          visible: true,
+        },
+        {
+          id: 2,
+          name: "Márcio",
+          role: "Barbeiro & Corporal Masculino",
+          bio: "Márcio combina a navalha clássica italiana e as tesouras de alta precisão com o que há de mais moderno em estética de pelos masculinos. Além de barbas terapêuticas esculpidas à toalha quente, ele é pioneiro em depilação masculina integral e corporal com técnicas que reduzem drasticamente o desconforto e garantem um visual limpo e polido.",
+          icon: "fa-scissors",
+          highlights: [
+            "Barboterapia com Toalhas Quentes e Óleos Essenciais",
+            "Cortes Clássicos e Contemporâneos",
+            "Depilação Corporal Masculina (total discrição)",
+          ],
+          order: 2,
+          visible: true,
+        },
+        {
+          id: 3,
+          name: "Giovanna",
+          role: "Administração, Reparo de Equipamentos e Esterilização de Equipamentos",
+          bio: "Giovanna garante a excelência nos bastidores do atelier. Especialista na manutenção técnica dos equipamentos de ponta, também supervisiona rigorosamente a esterilização de grau médico, oferecendo o mais alto padrão de higiene e gestão do ambiente.",
+          icon: "fa-clipboard-check",
+          highlights: [
+            "Gestão Administrativa",
+            "Reparo de Equipamentos",
+            "Esterilização de Instrumentais",
+          ],
+          order: 3,
+          visible: true,
+        },
+      ];
+
       const DEFAULT_APPROVED_REVIEWS = [
         {
           id: 1,
@@ -2597,6 +2530,10 @@
             },
           ],
           approvedReviews: [...DEFAULT_APPROVED_REVIEWS],
+          teamMembers: [...DEFAULT_TEAM_MEMBERS],
+          teamSectionLabel: "Nossa Equipe",
+          teamSectionTitle:
+            "Mãos esculpidas na tradição do cuidado sob medida",
           gallery: [],
           environments: [
             {
@@ -2695,6 +2632,16 @@
                 this.approvedReviews = merged;
               }
 
+              // Buscar equipe
+              const { data: team, error: teamError } = await supabase
+                .from("team_members")
+                .select("*")
+                .eq("visible", true)
+                .order("order", { ascending: true });
+              if (!teamError && team && team.length > 0) {
+                this.teamMembers = team;
+              }
+
               // Buscar galeria
               const { data: gallery } = await supabase
                 .from("gallery")
@@ -2720,6 +2667,14 @@
                 if (email) this.contactEmail = email.value;
                 const hero = settings.find((s) => s.key === "hero_image");
                 if (hero) this.heroImage = hero.value;
+                const teamLabel = settings.find(
+                  (s) => s.key === "team_section_label",
+                );
+                if (teamLabel) this.teamSectionLabel = teamLabel.value;
+                const teamTitle = settings.find(
+                  (s) => s.key === "team_section_title",
+                );
+                if (teamTitle) this.teamSectionTitle = teamTitle.value;
               }
             } catch (e) {
               // Supabase indisponível — dados padrão já foram carregados no init()
@@ -2898,6 +2853,22 @@
             setTimeout(() => {
               this.toastShow = false;
             }, 4000);
+          },
+
+          parseTeamHighlights(highlights) {
+            if (Array.isArray(highlights)) return highlights;
+            if (typeof highlights === "string") {
+              try {
+                return JSON.parse(highlights);
+              } catch {
+                return [];
+              }
+            }
+            return [];
+          },
+
+          get visibleTeamMembers() {
+            return this.teamMembers.filter((m) => m.visible !== false);
           },
 
           // Adicionar ou Remover Serviço Selecionado ao Agendamento

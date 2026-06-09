@@ -59,6 +59,12 @@
                 <p class="text-[10px] text-gold-400 uppercase tracking-widest">Painel de Gestão</p>
             </div>
             <nav class="flex-grow overflow-y-auto py-4">
+                <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3">
+                    <i class="fa-solid fa-gauge-high w-4 text-center"></i> Dashboard
+                </button>
+                <button @click="currentTab = 'team'" :class="currentTab === 'team' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3">
+                    <i class="fa-solid fa-people-group w-4 text-center"></i> Nossa Equipe
+                </button>
                 <button @click="currentTab = 'services'" :class="currentTab === 'services' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3">
                     <i class="fa-solid fa-list-ul w-4 text-center"></i> Serviços
                 </button>
@@ -76,6 +82,7 @@
                 </button>
                 <button @click="currentTab = 'messages'" :class="currentTab === 'messages' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3 relative">
                     <i class="fa-solid fa-envelope w-4 text-center"></i> Fale Conosco
+                    <span x-show="messages.length > 0" class="ml-auto bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full" x-text="messages.length"></span>
                 </button>
             </nav>
             <div class="p-6 border-t border-obsidian-850">
@@ -85,6 +92,123 @@
 
         <!-- Main Content Area -->
         <main class="flex-grow overflow-y-auto p-6 lg:p-10 bg-obsidian-950">
+
+            <!-- DASHBOARD TAB -->
+            <div x-show="currentTab === 'dashboard'" class="space-y-8">
+                <div>
+                    <h2 class="font-serif text-3xl text-white">Dashboard</h2>
+                    <p class="text-xs text-obsidian-400">Visão geral do L&M Atelier</p>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-5 rounded-sm">
+                        <p class="text-[10px] uppercase tracking-widest text-obsidian-400 mb-1">Serviços</p>
+                        <p class="text-2xl font-serif text-white" x-text="stats.services"></p>
+                    </div>
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-5 rounded-sm">
+                        <p class="text-[10px] uppercase tracking-widest text-obsidian-400 mb-1">Agendamentos</p>
+                        <p class="text-2xl font-serif text-gold-400" x-text="stats.activeAppts"></p>
+                    </div>
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-5 rounded-sm">
+                        <p class="text-[10px] uppercase tracking-widest text-obsidian-400 mb-1">Avaliações Pendentes</p>
+                        <p class="text-2xl font-serif text-yellow-400" x-text="stats.pendingReviews"></p>
+                    </div>
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-5 rounded-sm">
+                        <p class="text-[10px] uppercase tracking-widest text-obsidian-400 mb-1">Mensagens</p>
+                        <p class="text-2xl font-serif text-white" x-text="stats.messages"></p>
+                    </div>
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-5 rounded-sm">
+                        <p class="text-[10px] uppercase tracking-widest text-obsidian-400 mb-1">Galeria</p>
+                        <p class="text-2xl font-serif text-white" x-text="stats.gallery"></p>
+                    </div>
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-5 rounded-sm">
+                        <p class="text-[10px] uppercase tracking-widest text-obsidian-400 mb-1">Equipe</p>
+                        <p class="text-2xl font-serif text-white" x-text="stats.team"></p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm space-y-4">
+                        <h3 class="text-sm font-semibold text-gold-400 uppercase tracking-widest">Ações Rápidas</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button @click="currentTab = 'team'; openTeamModal()" class="text-left p-3 bg-obsidian-950 border border-obsidian-800 hover:border-gold-400 rounded-sm text-xs text-obsidian-300 hover:text-white transition-colors"><i class="fa-solid fa-user-plus mr-2 text-gold-400"></i> Novo Membro</button>
+                            <button @click="currentTab = 'services'; openServiceModal()" class="text-left p-3 bg-obsidian-950 border border-obsidian-800 hover:border-gold-400 rounded-sm text-xs text-obsidian-300 hover:text-white transition-colors"><i class="fa-solid fa-plus mr-2 text-gold-400"></i> Novo Serviço</button>
+                            <button @click="currentTab = 'gallery'; galleryUploadModalOpen = true" class="text-left p-3 bg-obsidian-950 border border-obsidian-800 hover:border-gold-400 rounded-sm text-xs text-obsidian-300 hover:text-white transition-colors"><i class="fa-solid fa-image mr-2 text-gold-400"></i> Upload Galeria</button>
+                            <button @click="currentTab = 'reviews'" class="text-left p-3 bg-obsidian-950 border border-obsidian-800 hover:border-gold-400 rounded-sm text-xs text-obsidian-300 hover:text-white transition-colors"><i class="fa-solid fa-star mr-2 text-gold-400"></i> Avaliações</button>
+                        </div>
+                    </div>
+                    <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm space-y-3">
+                        <h3 class="text-sm font-semibold text-gold-400 uppercase tracking-widest">Próximos Agendamentos</h3>
+                        <template x-for="appt in activeAppointments.slice(0, 5)" :key="appt.id">
+                            <div class="flex justify-between items-center text-xs border-b border-obsidian-850 pb-2">
+                                <div>
+                                    <span class="text-white font-medium" x-text="appt.clientName"></span>
+                                    <span class="text-obsidian-500 block" x-text="formatDate(appt.date) + ' às ' + appt.time + 'h'"></span>
+                                </div>
+                                <span class="text-gold-400 font-semibold" x-text="'R$ ' + appt.totalPrice"></span>
+                            </div>
+                        </template>
+                        <p x-show="activeAppointments.length === 0" class="text-obsidian-500 text-xs text-center py-4">Nenhum agendamento ativo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEAM TAB -->
+            <div x-show="currentTab === 'team'" class="space-y-8">
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <h2 class="font-serif text-3xl text-white">Nossa Equipe</h2>
+                        <p class="text-xs text-obsidian-400">Gerencie os profissionais exibidos na página inicial</p>
+                    </div>
+                    <button @click="openTeamModal()" class="bg-gold-500 hover:bg-gold-600 text-obsidian-900 px-4 py-2 text-xs uppercase tracking-widest font-bold rounded-sm">+ Novo Membro</button>
+                </div>
+
+                <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm space-y-4">
+                    <h3 class="text-sm font-semibold text-gold-400 uppercase tracking-widest">Cabeçalho da Seção (Site)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="block text-[10px] uppercase tracking-widest text-obsidian-400">Rótulo</label>
+                            <input type="text" x-model="teamSectionLabel" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-xs text-white">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-[10px] uppercase tracking-widest text-obsidian-400">Título Principal</label>
+                            <input type="text" x-model="teamSectionTitle" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-xs text-white">
+                        </div>
+                    </div>
+                    <button @click="saveTeamSectionHeader()" class="bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-bold uppercase tracking-widest text-[10px] py-3 px-6 rounded-sm">Salvar Cabeçalho</button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <template x-for="(member, idx) in teamMembers" :key="member.id || idx">
+                        <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm relative" :class="!member.visible ? 'opacity-50' : ''">
+                            <div class="absolute top-4 right-4 flex gap-1">
+                                <button @click="moveTeamMember(idx, -1)" :disabled="idx === 0" class="text-obsidian-400 hover:text-white px-2 py-1 disabled:opacity-30"><i class="fa-solid fa-chevron-up text-xs"></i></button>
+                                <button @click="moveTeamMember(idx, 1)" :disabled="idx === teamMembers.length - 1" class="text-obsidian-400 hover:text-white px-2 py-1 disabled:opacity-30"><i class="fa-solid fa-chevron-down text-xs"></i></button>
+                            </div>
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-14 h-14 rounded-full border border-gold-400 flex items-center justify-center text-gold-400 shrink-0 overflow-hidden bg-obsidian-950">
+                                    <img x-show="member.image_url" :src="member.image_url" class="w-full h-full object-cover">
+                                    <i x-show="!member.image_url" :class="'fa-solid ' + (member.icon || 'fa-user')"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-serif text-lg" x-text="member.name"></h4>
+                                    <p class="text-[10px] uppercase tracking-widest text-gold-400" x-text="member.role"></p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-obsidian-400 line-clamp-3 mb-4" x-text="member.bio"></p>
+                            <ul class="space-y-1 mb-4">
+                                <template x-for="h in parseHighlights(member.highlights)" :key="h">
+                                    <li class="text-[10px] text-obsidian-300 flex items-center gap-2"><span class="w-1 h-1 rounded-full bg-gold-400 shrink-0"></span><span x-text="h"></span></li>
+                                </template>
+                            </ul>
+                            <div class="flex flex-wrap gap-2 pt-4 border-t border-obsidian-850">
+                                <button @click="toggleTeamVisibility(idx)" class="text-[10px] uppercase tracking-widest px-2 py-1 border rounded-sm font-bold" :class="member.visible ? 'border-green-500 text-green-500' : 'border-obsidian-500 text-obsidian-500'" x-text="member.visible ? 'Visível' : 'Oculto'"></button>
+                                <button @click="editTeamMember(idx)" class="text-xs text-obsidian-300 hover:text-white bg-obsidian-800 px-3 py-1.5 rounded-sm"><i class="fa-solid fa-pen"></i></button>
+                                <button @click="deleteTeamMember(idx)" class="text-xs text-red-400 hover:text-red-300 bg-obsidian-800 px-3 py-1.5 rounded-sm"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="teamMembers.length === 0" class="col-span-full py-12 text-center text-obsidian-500">Nenhum membro cadastrado. Adicione o primeiro!</div>
+                </div>
+            </div>
             
             <!-- SERVICES TAB -->
             <div x-show="currentTab === 'services'" class="space-y-8">
@@ -145,13 +269,18 @@
                                 <template x-for="(appt, idx) in activeAppointments" :key="idx">
                                     <tr class="border-b border-obsidian-850">
                                         <td class="py-3 text-xs" x-text="formatDate(appt.date) + ' ' + appt.time + 'h'"></td>
-                                        <td class="py-3" x-text="appt.clientName"></td>
+                                        <td class="py-3">
+                                            <span class="block" x-text="appt.clientName"></span>
+                                            <span class="text-[10px] text-obsidian-500" x-text="appt.clientPhone"></span>
+                                        </td>
                                         <td class="py-3 text-xs text-obsidian-300">
-                                            <span x-text="appt.services.map(s => s.name).join(', ')"></span>
+                                            <span x-text="formatServicesList(appt.services)"></span>
+                                            <span class="block text-obsidian-500 mt-0.5" x-text="appt.totalDuration + ' min'"></span>
                                         </td>
                                         <td class="py-3 text-gold-400 font-semibold" x-text="'R$ ' + appt.totalPrice"></td>
-                                        <td class="py-3 text-right">
+                                        <td class="py-3 text-right space-x-1">
                                             <button @click="markAsCompleted(idx)" class="text-[10px] bg-green-500/20 text-green-400 px-3 py-1.5 rounded-sm uppercase tracking-widest font-bold hover:bg-green-500/30">Concluir</button>
+                                            <button @click="cancelAppointment(idx)" class="text-[10px] bg-red-500/20 text-red-400 px-3 py-1.5 rounded-sm uppercase tracking-widest font-bold hover:bg-red-500/30">Cancelar</button>
                                         </td>
                                     </tr>
                                 </template>
@@ -179,7 +308,7 @@
                                         <td class="py-3 text-xs" x-text="formatDate(appt.date) + ' ' + appt.time + 'h'"></td>
                                         <td class="py-3" x-text="appt.clientName"></td>
                                         <td class="py-3 text-xs text-obsidian-300">
-                                            <span x-text="appt.services.map(s => s.name).join(', ')"></span>
+                                            <span x-text="formatServicesList(appt.services)"></span>
                                         </td>
                                         <td class="py-3 text-gold-400 font-semibold" x-text="'R$ ' + appt.totalPrice"></td>
                                     </tr>
@@ -193,19 +322,26 @@
 
             <!-- REVIEWS TAB -->
             <div x-show="currentTab === 'reviews'" class="space-y-8">
-                <div>
-                    <h2 class="font-serif text-3xl text-white">Gestão de Avaliações</h2>
-                    <p class="text-xs text-obsidian-400">Aprove, oculte ou exclua depoimentos</p>
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <h2 class="font-serif text-3xl text-white">Gestão de Avaliações</h2>
+                        <p class="text-xs text-obsidian-400">Aprove, oculte ou exclua depoimentos</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="reviewFilter = 'all'" :class="reviewFilter === 'all' ? 'bg-gold-500 text-obsidian-900' : 'bg-obsidian-900 text-obsidian-300 border border-obsidian-800'" class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm">Todos</button>
+                        <button @click="reviewFilter = 'pending'" :class="reviewFilter === 'pending' ? 'bg-gold-500 text-obsidian-900' : 'bg-obsidian-900 text-obsidian-300 border border-obsidian-800'" class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm">Pendentes</button>
+                        <button @click="reviewFilter = 'approved'" :class="reviewFilter === 'approved' ? 'bg-gold-500 text-obsidian-900' : 'bg-obsidian-900 text-obsidian-300 border border-obsidian-800'" class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm">Aprovados</button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <template x-for="(review, idx) in reviews" :key="review.id">
+                    <template x-for="(review, idx) in filteredReviews()" :key="review.id">
                         <div class="bg-obsidian-900 border border-obsidian-800 p-6 rounded-sm relative">
                             <div class="absolute top-6 right-6 flex gap-2">
-                                <button @click="toggleReviewStatus(idx)" class="text-[10px] uppercase tracking-widest px-2 py-1 border rounded-sm font-bold" :class="review.status === 'approved' ? 'border-green-500 text-green-500' : (review.status === 'hidden' ? 'border-obsidian-500 text-obsidian-500' : 'border-yellow-500 text-yellow-500')">
+                                <button @click="toggleReviewStatus(review.id)" class="text-[10px] uppercase tracking-widest px-2 py-1 border rounded-sm font-bold" :class="review.status === 'approved' ? 'border-green-500 text-green-500' : (review.status === 'hidden' ? 'border-obsidian-500 text-obsidian-500' : 'border-yellow-500 text-yellow-500')">
                                     <span x-text="review.status === 'approved' ? 'Aprovado' : (review.status === 'hidden' ? 'Oculto' : 'Pendente')"></span>
                                 </button>
-                                <button @click="deleteReview(idx)" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                                <button @click="deleteReview(review.id)" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
                             </div>
                             
                             <div class="text-gold-400 text-xs mb-3">
@@ -392,6 +528,64 @@
         </div>
     </div>
 
+    <!-- Team Member Modal -->
+    <div x-show="teamModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/90 z-50 flex items-center justify-center p-6 backdrop-blur-md overflow-y-auto">
+        <div class="bg-obsidian-900 border border-obsidian-800 p-8 rounded-sm w-full max-w-lg relative my-8">
+            <button @click="teamModalOpen = false" class="absolute top-4 right-4 text-obsidian-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="font-serif text-2xl text-white mb-6" x-text="isEditingTeam ? 'Editar Membro' : 'Novo Membro da Equipe'"></h3>
+            <form @submit.prevent="saveTeamMember" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2 col-span-2 sm:col-span-1">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Nome</label>
+                        <input type="text" x-model="editingTeam.name" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white text-sm focus:outline-none">
+                    </div>
+                    <div class="space-y-2 col-span-2 sm:col-span-1">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Ordem</label>
+                        <input type="number" x-model="editingTeam.order" min="0" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white text-sm focus:outline-none">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-widest text-obsidian-300">Cargo / Especialidade</label>
+                    <input type="text" x-model="editingTeam.role" required class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white text-sm focus:outline-none">
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-widest text-obsidian-300">Biografia</label>
+                    <textarea x-model="editingTeam.bio" required rows="4" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white text-sm focus:outline-none"></textarea>
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-widest text-obsidian-300">Destaques (um por linha)</label>
+                    <textarea x-model="editingTeam.highlightsText" rows="3" placeholder="Ex: Depilação com Cera Orgânica" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white text-sm focus:outline-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Ícone (Font Awesome)</label>
+                        <select x-model="editingTeam.icon" class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white text-sm focus:outline-none">
+                            <option value="fa-leaf">Folha (Estética)</option>
+                            <option value="fa-scissors">Tesoura (Barbearia)</option>
+                            <option value="fa-clipboard-check">Administração</option>
+                            <option value="fa-spa">Spa</option>
+                            <option value="fa-user">Pessoa</option>
+                            <option value="fa-heart">Coração</option>
+                            <option value="fa-star">Estrela</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-widest text-obsidian-300">Foto (Opcional)</label>
+                        <input type="file" accept="image/*" @change="handleTeamImageUpload($event)" class="w-full text-[10px] text-white">
+                    </div>
+                </div>
+                <div x-show="editingTeam.image_url" class="w-20 h-20 rounded-full overflow-hidden border border-gold-400 mx-auto">
+                    <img :src="editingTeam.image_url" class="w-full h-full object-cover">
+                </div>
+                <label class="flex items-center gap-2 text-xs text-obsidian-300 cursor-pointer">
+                    <input type="checkbox" x-model="editingTeam.visible" class="rounded border-obsidian-700">
+                    Exibir no site
+                </label>
+                <button type="submit" :disabled="isUploading" class="w-full bg-gold-500 hover:bg-gold-600 text-obsidian-900 font-bold uppercase tracking-widest text-xs py-4 rounded-sm transition-colors mt-4 disabled:opacity-50">Salvar Membro</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Gallery Upload Modal -->
     <div x-show="galleryUploadModalOpen" style="display: none;" class="fixed inset-0 bg-obsidian-950/90 z-50 flex items-center justify-center p-6 backdrop-blur-md">
         <div class="bg-obsidian-900 border border-obsidian-800 p-8 rounded-sm w-full max-w-md relative">
@@ -450,7 +644,9 @@
                 isAuthenticated: false,
                 password: '',
                 loginError: '',
-                currentTab: 'services',
+                currentTab: 'dashboard',
+                reviewFilter: 'all',
+                stats: { services: 0, activeAppts: 0, pendingReviews: 0, messages: 0, gallery: 0, team: 0 },
                 
                 services: { lorena: [], marcio: [] },
                 activeAppointments: [],
@@ -458,6 +654,9 @@
                 reviews: [],
                 gallery: [],
                 messages: [],
+                teamMembers: [],
+                teamSectionLabel: 'Nossa Equipe',
+                teamSectionTitle: 'Mãos esculpidas na tradição do cuidado sob medida',
                 environments: [
                     { subtitle: 'Barber Lounge', title: 'A Cadeira de Márcio', image_url: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=600', order: 1 },
                     { subtitle: 'Cabines Estéticas', title: 'Refúgio Lorena', image_url: 'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&q=80&w=600', order: 2 },
@@ -468,6 +667,10 @@
                 isEditing: false,
                 editingIdx: null,
                 editingService: { category: 'lorena', name: '', desc: '', price: 0, time: 0 },
+
+                teamModalOpen: false,
+                isEditingTeam: false,
+                editingTeam: { name: '', role: '', bio: '', icon: 'fa-user', highlightsText: '', image_url: '', order: 0, visible: true, _file: null },
 
                 galleryUploadModalOpen: false,
                 isUploading: false,
@@ -491,6 +694,50 @@
                     this.password = '';
                 },
 
+                normalizeAppointment(a) {
+                    let services = a.services;
+                    if (typeof services === 'string') {
+                        try { services = JSON.parse(services); } catch { services = []; }
+                    }
+                    return {
+                        ...a,
+                        clientName: a.clientname ?? a.clientName ?? '',
+                        clientPhone: a.clientphone ?? a.clientPhone ?? '',
+                        totalPrice: a.totalprice ?? a.totalPrice ?? 0,
+                        totalDuration: a.totalduration ?? a.totalDuration ?? 0,
+                        services: Array.isArray(services) ? services : [],
+                    };
+                },
+
+                formatServicesList(services) {
+                    if (!services || !services.length) return '—';
+                    return services.map(s => s.name || s).join(', ');
+                },
+
+                parseHighlights(highlights) {
+                    if (Array.isArray(highlights)) return highlights;
+                    if (typeof highlights === 'string') {
+                        try { return JSON.parse(highlights); } catch { return []; }
+                    }
+                    return [];
+                },
+
+                filteredReviews() {
+                    if (this.reviewFilter === 'all') return this.reviews;
+                    return this.reviews.filter(r => r.status === this.reviewFilter);
+                },
+
+                updateStats() {
+                    this.stats = {
+                        services: this.services.lorena.length + this.services.marcio.length,
+                        activeAppts: this.activeAppointments.length,
+                        pendingReviews: this.reviews.filter(r => r.status === 'pending').length,
+                        messages: this.messages.length,
+                        gallery: this.gallery.length,
+                        team: this.teamMembers.length,
+                    };
+                },
+
                 async loadData() {
                     const { data: services } = await supabase.from('services').select('*');
                     if (services) {
@@ -500,15 +747,19 @@
                     
                     const { data: appointments } = await supabase.from('appointments').select('*').order('created_at', { ascending: false });
                     if (appointments) {
-                        this.activeAppointments = appointments.filter(a => a.status === 'scheduled');
-                        this.completedAppointments = appointments.filter(a => a.status === 'completed');
+                        const normalized = appointments.map(a => this.normalizeAppointment(a));
+                        this.activeAppointments = normalized.filter(a => a.status === 'scheduled');
+                        this.completedAppointments = normalized.filter(a => a.status === 'completed');
                     }
                     
                     const { data: reviews } = await supabase.from('reviews').select('*').order('date', { ascending: false });
                     if (reviews) this.reviews = reviews;
                     
                     const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
-                    if (gallery) this.gallery = gallery; // Now objects with {id, url}
+                    if (gallery) this.gallery = gallery;
+
+                    const { data: team } = await supabase.from('team_members').select('*').order('order', { ascending: true });
+                    if (team) this.teamMembers = team;
                     
                     const { data: messages } = await supabase.from('messages').select('*').order('date', { ascending: false });
                     if (messages) this.messages = messages;
@@ -524,7 +775,13 @@
                         if (phone) this.contactPhone = phone.value;
                         const email = settings.find(s => s.key === 'contact_email');
                         if (email) this.contactEmail = email.value;
+                        const teamLabel = settings.find(s => s.key === 'team_section_label');
+                        if (teamLabel) this.teamSectionLabel = teamLabel.value;
+                        const teamTitle = settings.find(s => s.key === 'team_section_title');
+                        if (teamTitle) this.teamSectionTitle = teamTitle.value;
                     }
+
+                    this.updateStats();
                 },
 
                 // Services
@@ -584,9 +841,116 @@
                     }
                 },
 
+                async cancelAppointment(idx) {
+                    if (confirm("Cancelar este agendamento? Ele será removido permanentemente.")) {
+                        const appt = this.activeAppointments[idx];
+                        await supabase.from('appointments').delete().eq('id', appt.id);
+                        await this.loadData();
+                    }
+                },
+
+                // Team
+                openTeamModal() {
+                    this.isEditingTeam = false;
+                    this.editingTeam = { name: '', role: '', bio: '', icon: 'fa-user', highlightsText: '', image_url: '', order: this.teamMembers.length + 1, visible: true, _file: null };
+                    this.teamModalOpen = true;
+                },
+                editTeamMember(idx) {
+                    const m = this.teamMembers[idx];
+                    this.isEditingTeam = true;
+                    this.editingTeam = {
+                        ...m,
+                        highlightsText: this.parseHighlights(m.highlights).join('\n'),
+                        _file: null,
+                    };
+                    this.teamModalOpen = true;
+                },
+                handleTeamImageUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    this.editingTeam._file = file;
+                    this.editingTeam.image_url = URL.createObjectURL(file);
+                },
+                async saveTeamMember() {
+                    const highlights = this.editingTeam.highlightsText
+                        .split('\n')
+                        .map(s => s.trim())
+                        .filter(Boolean);
+                    const payload = {
+                        name: this.editingTeam.name,
+                        role: this.editingTeam.role,
+                        bio: this.editingTeam.bio,
+                        icon: this.editingTeam.icon || 'fa-user',
+                        highlights,
+                        order: parseInt(this.editingTeam.order) || 0,
+                        visible: !!this.editingTeam.visible,
+                    };
+                    this.isUploading = true;
+                    try {
+                        if (this.editingTeam._file) {
+                            const file = this.editingTeam._file;
+                            const ext = file.name.split('.').pop();
+                            const fileName = `team/${Date.now()}.${ext}`;
+                            const { error: upErr } = await supabase.storage.from('images').upload(fileName, file, { upsert: true });
+                            if (upErr) throw upErr;
+                            const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
+                            payload.image_url = urlData.publicUrl;
+                        } else if (this.editingTeam.image_url && !this.editingTeam.image_url.startsWith('blob:')) {
+                            payload.image_url = this.editingTeam.image_url;
+                        }
+                        if (this.isEditingTeam && this.editingTeam.id) {
+                            const { error } = await supabase.from('team_members').update(payload).eq('id', this.editingTeam.id);
+                            if (error) throw error;
+                        } else {
+                            const { error } = await supabase.from('team_members').insert([payload]);
+                            if (error) throw error;
+                        }
+                        await this.loadData();
+                        this.teamModalOpen = false;
+                        alert('Membro da equipe salvo com sucesso!');
+                    } catch (e) {
+                        console.error(e);
+                        alert('Erro ao salvar membro: ' + (e.message || 'verifique se executou o database.sql'));
+                    } finally {
+                        this.isUploading = false;
+                    }
+                },
+                async deleteTeamMember(idx) {
+                    if (!confirm('Excluir este membro da equipe?')) return;
+                    const m = this.teamMembers[idx];
+                    await supabase.from('team_members').delete().eq('id', m.id);
+                    await this.loadData();
+                },
+                async toggleTeamVisibility(idx) {
+                    const m = this.teamMembers[idx];
+                    await supabase.from('team_members').update({ visible: !m.visible }).eq('id', m.id);
+                    await this.loadData();
+                },
+                async moveTeamMember(idx, direction) {
+                    const target = idx + direction;
+                    if (target < 0 || target >= this.teamMembers.length) return;
+                    const a = this.teamMembers[idx];
+                    const b = this.teamMembers[target];
+                    const orderA = a.order ?? idx;
+                    const orderB = b.order ?? target;
+                    await supabase.from('team_members').update({ order: orderB }).eq('id', a.id);
+                    await supabase.from('team_members').update({ order: orderA }).eq('id', b.id);
+                    await this.loadData();
+                },
+                async saveTeamSectionHeader() {
+                    try {
+                        await supabase.from('site_settings').upsert({ key: 'team_section_label', value: this.teamSectionLabel }, { onConflict: 'key' });
+                        await supabase.from('site_settings').upsert({ key: 'team_section_title', value: this.teamSectionTitle }, { onConflict: 'key' });
+                        alert('Cabeçalho da seção atualizado!');
+                    } catch (e) {
+                        alert('Erro ao salvar cabeçalho.');
+                    }
+                },
+
                 // Reviews
-                async toggleReviewStatus(idx) {
-                    const r = this.reviews[idx];
+                async toggleReviewStatus(id) {
+                    const r = this.reviews.find(x => x.id === id);
+                    if (!r) return;
                     let newStatus = 'approved';
                     if (r.status === 'pending' || r.status === 'hidden') newStatus = 'approved';
                     else if (r.status === 'approved') newStatus = 'hidden';
@@ -594,10 +958,9 @@
                     await supabase.from('reviews').update({ status: newStatus }).eq('id', r.id);
                     await this.loadData();
                 },
-                async deleteReview(idx) {
+                async deleteReview(id) {
                     if(confirm("Excluir esta avaliação?")) {
-                        const r = this.reviews[idx];
-                        await supabase.from('reviews').delete().eq('id', r.id);
+                        await supabase.from('reviews').delete().eq('id', id);
                         await this.loadData();
                     }
                 },
