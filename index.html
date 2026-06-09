@@ -208,6 +208,35 @@
         backdrop-filter: blur(12px);
         border: 1px solid rgba(201, 158, 103, 0.08);
       }
+
+      @keyframes toast-in {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .toast-enter {
+        animation: toast-in 0.35s ease-out;
+      }
+
+      @keyframes status-pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.65;
+        }
+      }
+
+      .status-pulse {
+        animation: status-pulse 2s ease-in-out infinite;
+      }
     </style>
   </head>
 
@@ -279,9 +308,9 @@
             <i class="fa-regular fa-calendar text-base"></i>
             <span class="hidden xl:inline">Agendamentos</span>
             <span
-              x-show="savedAppointments.length > 0"
+              x-show="activeAppointmentsCount > 0"
               class="absolute -top-1.5 -right-1.5 bg-gold-400 text-obsidian-900 rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold"
-              x-text="savedAppointments.length"
+              x-text="activeAppointmentsCount"
             ></span>
           </button>
 
@@ -384,9 +413,9 @@
           >
             <i class="fa-regular fa-calendar"></i> Agendamentos
             <span
-              x-show="savedAppointments.length > 0"
+              x-show="activeAppointmentsCount > 0"
               class="bg-gold-400 text-obsidian-900 rounded-full px-1.5 py-0.5 text-[9px] font-bold"
-              x-text="savedAppointments.length"
+              x-text="activeAppointmentsCount"
             ></span>
           </button>
           <a
@@ -542,7 +571,12 @@
           </div>
 
           <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12"
+            class="grid gap-8 lg:gap-12"
+            :class="{
+              'grid-cols-1 max-w-xl mx-auto': visibleTeamMembers.length === 1,
+              'grid-cols-1 md:grid-cols-2': visibleTeamMembers.length === 2,
+              'grid-cols-1 md:grid-cols-2 xl:grid-cols-3': visibleTeamMembers.length >= 3
+            }"
           >
             <template
               x-for="(member, idx) in visibleTeamMembers"
@@ -829,7 +863,23 @@
           <div
             class="bg-obsidian-900 border border-obsidian-800 p-6 sm:p-12 rounded-2xl shadow-2xl relative overflow-hidden"
           >
-            <!-- Barra de Progresso Visível e Elegante (Mobile Otimizada) -->
+            <!-- Barra de Progresso -->
+            <div class="mb-6">
+              <div
+                class="h-1 bg-obsidian-800 rounded-full overflow-hidden"
+              >
+                <div
+                  class="h-full bg-[#c99e67] transition-all duration-500 ease-out"
+                  :style="'width:' + (bookingStep / 4 * 100) + '%'"
+                ></div>
+              </div>
+              <p
+                class="text-[10px] text-obsidian-500 mt-2 text-right uppercase tracking-widest"
+              >
+                Etapa <span x-text="bookingStep"></span> de 4
+              </p>
+            </div>
+
             <div
               class="flex overflow-x-auto sm:grid sm:grid-cols-4 gap-6 sm:gap-2 mb-10 pb-3 sm:pb-0 snap-x hide-scrollbar"
             >
@@ -926,7 +976,7 @@
                           >Valor:
                           <span
                             class="text-gold-300 font-semibold"
-                            x-text="'R$ ' + service.price"
+                            x-text="formatPrice(service.price)"
                           ></span
                         ></span>
                       </div>
@@ -961,10 +1011,10 @@
                   <span class="text-obsidian-400 block text-[10px] uppercase"
                     >Investimento Total</span
                   >
-                  <span
-                    class="text-2xl font-serif text-gold-400 font-bold"
-                    x-text="'R$ ' + totalPrice"
-                  ></span>
+                    <span
+                      class="text-2xl font-serif text-gold-400 font-bold"
+                      x-text="formatPrice(totalPrice)"
+                    ></span>
                 </div>
               </div>
 
@@ -1056,7 +1106,7 @@
                     <template x-for="time in availableSlots" :key="time">
                       <button
                         @click="bookingState.time = time"
-                        :class="bookingState.time === time ? 'bg-gold-400 text-obsidian-900 border-gold-400' : 'bg-obsidian-950 text-obsidian-300 border-obsidian-850 hover:border-gold-400'"
+                        :class="bookingState.time === time ? 'bg-[#c99e67] text-white border-[#c99e67]' : 'bg-obsidian-950 text-obsidian-300 border-obsidian-850 hover:border-[#c99e67]'"
                         class="py-2.5 px-3 text-xs tracking-wider border rounded-sm transition-all duration-300 font-medium"
                       >
                         <span x-text="time"></span>
@@ -1092,7 +1142,7 @@
                   <i class="fa-solid fa-arrow-left"></i> Voltar
                 </button>
                 <button
-                  @click="bookingState.time ? bookingStep = 3 : triggerToast('Por favor, selecione um horário.')"
+                  @click="bookingState.time ? bookingStep = 3 : triggerToast('Por favor, selecione um horário.', 'error')"
                   :disabled="!bookingState.time"
                   :class="!bookingState.time ? 'opacity-50 cursor-not-allowed' : ''"
                   class="w-full sm:w-auto bg-gold-500 hover:bg-gold-600 text-obsidian-900 text-xs tracking-widest uppercase font-bold py-4 px-8 rounded-xl transition-all flex items-center justify-center gap-2"
@@ -1251,6 +1301,15 @@
                         x-text="bookingState.clientPhone"
                       ></span>
                     </div>
+                    <div class="flex justify-between">
+                      <span class="text-obsidian-400 text-xs"
+                        >Duração estimada:</span
+                      >
+                      <span
+                        class="text-white font-medium text-xs"
+                        x-text="totalDuration + ' min'"
+                      ></span>
+                    </div>
                     <div
                       class="flex justify-between border-t border-obsidian-800 pt-2 mt-2"
                     >
@@ -1259,7 +1318,7 @@
                       >
                       <span
                         class="text-lg font-serif text-gold-300 font-bold"
-                        x-text="'R$ ' + totalPrice"
+                        x-text="formatPrice(totalPrice)"
                       ></span>
                     </div>
                   </div>
@@ -1281,7 +1340,7 @@
                       <span class="text-white" x-text="service.name"></span>
                       <span
                         class="text-gold-300"
-                        x-text="'R$ ' + service.price"
+                        x-text="formatPrice(service.price)"
                       ></span>
                     </div>
                   </template>
@@ -1310,9 +1369,16 @@
                 </button>
                 <button
                   @click="confirmBookingFinal()"
-                  class="w-full sm:w-auto bg-gold-500 hover:bg-gold-600 text-obsidian-900 text-xs tracking-widest uppercase font-bold py-4 px-10 rounded-xl transition-all duration-300 flex items-center justify-center gap-2"
+                  :disabled="confirmingBooking"
+                  class="w-full sm:w-auto bg-[#c99e67] hover:bg-[#b08856] text-white text-xs tracking-widest uppercase font-bold py-4 px-10 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-60"
                 >
-                  Confirmar Agendamento <i class="fa-solid fa-circle-check"></i>
+                  <span x-show="!confirmingBooking"
+                    >Confirmar Agendamento
+                    <i class="fa-solid fa-circle-check ml-1"></i
+                  ></span>
+                  <span x-show="confirmingBooking" class="flex items-center gap-2"
+                    ><i class="fa-solid fa-spinner fa-spin"></i> Confirmando...</span
+                  >
                 </button>
               </div>
             </div>
@@ -1816,21 +1882,40 @@
 
               <template x-for="c in currentImageComments" :key="c.id">
                 <div
-                  class="space-y-1 bg-obsidian-950 p-3 rounded-sm border border-obsidian-850"
+                  class="space-y-1 bg-obsidian-950 p-3 rounded-sm border border-obsidian-850 group"
                 >
                   <p
-                    class="text-gold-400 text-xs font-semibold flex justify-between"
+                    class="text-gold-400 text-xs font-semibold flex justify-between items-start gap-2"
                   >
                     <span x-text="c.username"></span>
-                    <span
-                      class="text-[9px] text-obsidian-500"
-                      x-text="formatDate(c.created_at?.split('T')[0])"
-                    ></span>
+                    <span class="flex items-center gap-2 shrink-0">
+                      <span
+                        class="text-[9px] text-obsidian-500"
+                        x-text="formatDate(c.created_at?.split('T')[0])"
+                      ></span>
+                      <button
+                        x-show="isMyComment(c.id)"
+                        @click="deleteGalleryComment(c.id)"
+                        type="button"
+                        class="text-red-400/70 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+                        title="Apagar meu comentário"
+                      >
+                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                      </button>
+                    </span>
                   </p>
                   <p
                     class="text-obsidian-200 text-sm font-light break-words"
                     x-text="c.comment"
                   ></p>
+                  <button
+                    x-show="isMyComment(c.id)"
+                    @click="deleteGalleryComment(c.id)"
+                    type="button"
+                    class="sm:hidden text-[9px] text-red-400/80 uppercase tracking-widest mt-1"
+                  >
+                    Apagar comentário
+                  </button>
                 </div>
               </template>
 
@@ -1884,64 +1969,134 @@
         class="fixed inset-0 bg-obsidian-950/90 z-50 backdrop-blur-md flex items-center justify-center p-6"
       >
         <div
-          class="bg-obsidian-900 border border-obsidian-800 max-w-lg w-full p-8 sm:p-12 text-center rounded-sm space-y-6 shadow-2xl relative"
+          class="bg-obsidian-900 border border-gold-500/20 max-w-lg w-full p-8 sm:p-10 rounded-sm space-y-6 shadow-2xl relative overflow-hidden"
         >
           <div
-            class="w-16 h-16 rounded-full bg-gold-500/10 border border-gold-400 flex items-center justify-center text-gold-400 mx-auto text-2xl animate-float-slow"
-          >
-            <i class="fa-solid fa-champagne-glasses"></i>
-          </div>
+            class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#c99e67] to-transparent"
+          ></div>
 
-          <h3 class="font-serif text-2xl sm:text-3xl text-white">
-            Sua Experiência está Selada!
-          </h3>
-          <p class="text-obsidian-300 text-sm font-light leading-relaxed">
-            Parabéns,
-            <span
-              class="font-semibold text-white"
-              x-text="bookingState.clientName"
-            ></span
-            >. Seu horário foi reservado com sucesso no L&M Atelier. Lorena e
-            Márcio já estão cientes dos seus detalhes e preferências.
-          </p>
-
-          <!-- Box Resumo Rápido -->
-          <div
-            class="p-4 bg-obsidian-950 border border-obsidian-850 rounded-sm text-left text-xs space-y-2"
-          >
-            <p
-              class="text-obsidian-400 uppercase tracking-widest text-[9px] font-semibold"
+          <div class="text-center space-y-3">
+            <div
+              class="w-16 h-16 rounded-full bg-[#c99e67]/15 border border-[#c99e67] flex items-center justify-center text-[#c99e67] mx-auto text-2xl animate-float-slow"
             >
-              Resumo do Encontro
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <span
+              class="inline-block text-[10px] uppercase tracking-[0.25em] text-[#c99e67] font-semibold"
+              >Reserva Confirmada</span
+            >
+            <h3 class="font-serif text-2xl sm:text-3xl text-white">
+              Sua Experiência está Selada!
+            </h3>
+            <p class="text-obsidian-300 text-sm font-light leading-relaxed">
+              Parabéns,
+              <span
+                class="font-semibold text-white"
+                x-text="lastConfirmedAppointment?.clientName"
+              ></span
+              >. Seu horário foi reservado com sucesso no L&M Atelier.
             </p>
-            <div class="flex justify-between text-white">
+          </div>
+
+          <div
+            class="p-5 bg-obsidian-950 border border-obsidian-800 rounded-sm text-left text-xs space-y-3"
+          >
+            <div class="flex justify-between items-center">
+              <p
+                class="text-obsidian-400 uppercase tracking-widest text-[9px] font-semibold"
+              >
+                Comprovante da Reserva
+              </p>
               <span
-                >Dia: <strong x-text="formatDate(bookingState.date)"></strong
-              ></span>
-              <span
-                >Hora: <strong x-text="bookingState.time + 'h'"></strong
+                class="text-[9px] text-obsidian-500 font-mono"
+                x-show="lastConfirmedAppointment?.id"
+                x-text="'#' + lastConfirmedAppointment?.id"
               ></span>
             </div>
-            <div class="flex justify-between text-gold-300">
-              <span>Atendimento Privativo</span>
-              <span x-text="'R$ ' + totalPrice"></span>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3 bg-obsidian-900/60 rounded-sm">
+                <span class="text-obsidian-500 block text-[9px] uppercase mb-1"
+                  >Data</span
+                >
+                <strong
+                  class="text-white"
+                  x-text="formatDate(lastConfirmedAppointment?.date)"
+                ></strong>
+              </div>
+              <div class="p-3 bg-obsidian-900/60 rounded-sm">
+                <span class="text-obsidian-500 block text-[9px] uppercase mb-1"
+                  >Horário</span
+                >
+                <strong
+                  class="text-white"
+                  x-text="(lastConfirmedAppointment?.time || '') + 'h'"
+                ></strong>
+              </div>
+            </div>
+            <div class="space-y-1.5 border-t border-obsidian-850 pt-3">
+              <template
+                x-for="svc in lastConfirmedAppointment?.services || []"
+                :key="svc.name"
+              >
+                <div class="flex justify-between text-obsidian-300">
+                  <span x-text="svc.name"></span>
+                  <span
+                    class="text-gold-300"
+                    x-text="formatPrice(svc.price)"
+                  ></span>
+                </div>
+              </template>
+            </div>
+            <div
+              class="flex justify-between items-center border-t border-obsidian-850 pt-3"
+            >
+              <div>
+                <span class="text-obsidian-500 text-[9px] uppercase block"
+                  >Duração</span
+                >
+                <span
+                  class="text-white font-medium"
+                  x-text="(lastConfirmedAppointment?.totalDuration || 0) + ' min'"
+                ></span>
+              </div>
+              <div class="text-right">
+                <span class="text-obsidian-500 text-[9px] uppercase block"
+                  >Investimento</span
+                >
+                <span
+                  class="text-xl font-serif text-[#c99e67] font-bold"
+                  x-text="formatPrice(lastConfirmedAppointment?.totalPrice)"
+                ></span>
+              </div>
             </div>
           </div>
+
+          <p class="text-[10px] text-obsidian-500 text-center leading-relaxed">
+            Pagamento no atelier após o atendimento. Você pode acompanhar ou
+            cancelar em
+            <button
+              type="button"
+              @click="successModalOpen = false; openAppointmentsModal()"
+              class="text-gold-400 hover:underline"
+            >
+              Meus Agendamentos</button
+            >.
+          </p>
 
           <div class="space-y-3">
             <button
               @click="closeSuccessModalAndReset()"
-              class="w-full bg-gold-400 hover:bg-gold-500 text-obsidian-900 font-semibold tracking-widest text-xs uppercase py-3.5 rounded-sm transition-all shadow-md"
+              class="w-full bg-[#c99e67] hover:bg-[#b08856] text-white font-semibold tracking-widest text-xs uppercase py-3.5 rounded-sm transition-all"
             >
               Voltar ao Portal
             </button>
             <a
-              :href="'https://wa.me/5562981816251?text=Olá, acabei de agendar no L&M Atelier para o dia ' + formatDate(bookingState.date) + ' às ' + bookingState.time + 'h.'"
+              :href="getWhatsAppLink(lastConfirmedAppointment)"
               target="_blank"
-              class="block w-full border border-obsidian-700 hover:border-gold-300 text-white font-medium tracking-widest text-xs uppercase py-3.5 rounded-sm transition-all text-center bg-obsidian-900/40"
+              class="block w-full border border-obsidian-700 hover:border-green-500/50 text-white font-medium tracking-widest text-xs uppercase py-3.5 rounded-sm transition-all text-center bg-obsidian-900/40"
             >
-              <i class="fa-brands fa-whatsapp mr-1.5 text-green-400"></i> Avisar
-              por WhatsApp
+              <i class="fa-brands fa-whatsapp mr-1.5 text-green-400"></i>
+              Confirmar no WhatsApp
             </a>
           </div>
         </div>
@@ -1950,117 +2105,292 @@
       <div
         x-show="appointmentsModalOpen"
         style="display: none"
-        class="fixed inset-0 bg-obsidian-950/90 z-50 backdrop-blur-md flex items-center justify-center p-6"
+        class="fixed inset-0 bg-obsidian-950/90 z-50 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
       >
         <div
-          class="bg-obsidian-900 border border-obsidian-800 max-w-2xl w-full p-8 rounded-sm shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+          class="bg-obsidian-900 border border-obsidian-800 max-w-2xl w-full rounded-sm shadow-2xl max-h-[92vh] flex flex-col overflow-hidden"
         >
-          <div
-            class="flex justify-between items-center pb-4 border-b border-obsidian-800"
-          >
-            <div class="space-y-1">
-              <h3 class="font-serif text-2xl text-white">Seus Agendamentos</h3>
-              <p class="text-xs text-obsidian-400">
-                Histórico de reservas solicitadas a partir deste navegador.
-              </p>
+          <div class="p-6 sm:p-8 border-b border-obsidian-800 shrink-0">
+            <div class="flex justify-between items-start gap-4">
+              <div class="space-y-1">
+                <h3 class="font-serif text-2xl text-white">Meus Agendamentos</h3>
+                <p class="text-xs text-obsidian-400">
+                  Acompanhe reservas ativas, canceladas e concluídas.
+                </p>
+              </div>
+              <button
+                @click="appointmentsModalOpen = false"
+                class="text-obsidian-400 hover:text-white p-1"
+              >
+                <i class="fa-solid fa-xmark text-xl"></i>
+              </button>
             </div>
-            <button
-              @click="appointmentsModalOpen = false"
-              class="text-obsidian-400 hover:text-white text-xl"
-            >
-              <i class="fa-solid fa-xmark"></i>
-            </button>
+            <div class="flex gap-2 mt-5 flex-wrap">
+              <button
+                @click="appointmentTab = 'active'"
+                :class="appointmentTab === 'active' ? 'bg-[#c99e67] text-white' : 'bg-obsidian-950 text-obsidian-400 border border-obsidian-800'"
+                class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-colors"
+              >
+                Ativos
+                <span
+                  x-show="activeAppointmentsCount > 0"
+                  class="ml-1 opacity-80"
+                  x-text="'(' + activeAppointmentsCount + ')'"
+                ></span>
+              </button>
+              <button
+                @click="appointmentTab = 'cancelled'"
+                :class="appointmentTab === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-obsidian-950 text-obsidian-400 border border-obsidian-800'"
+                class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-colors"
+              >
+                Cancelados
+              </button>
+              <button
+                @click="appointmentTab = 'completed'"
+                :class="appointmentTab === 'completed' ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-obsidian-950 text-obsidian-400 border border-obsidian-800'"
+                class="px-3 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-colors"
+              >
+                Concluídos
+              </button>
+            </div>
           </div>
 
-          <div class="space-y-4">
-            <template x-if="savedAppointments.length === 0">
-              <div class="text-center py-12 text-sm text-obsidian-400">
-                Nenhum agendamento encontrado no seu histórico recente de
-                navegação.
+          <div class="p-6 sm:p-8 overflow-y-auto flex-grow space-y-4">
+            <template x-if="filteredSavedAppointments().length === 0">
+              <div class="text-center py-12 space-y-3">
+                <div
+                  class="w-14 h-14 rounded-full bg-obsidian-950 border border-obsidian-800 flex items-center justify-center mx-auto text-obsidian-500 text-xl"
+                >
+                  <i class="fa-regular fa-calendar-xmark"></i>
+                </div>
+                <p
+                  class="text-obsidian-400 text-sm"
+                  x-text="getEmptyAppointmentsMessage()"
+                ></p>
+                <button
+                  x-show="appointmentTab === 'active'"
+                  @click="appointmentsModalOpen = false; scrollToSection('agendador')"
+                  class="text-[10px] uppercase tracking-widest text-[#c99e67] hover:underline font-semibold"
+                >
+                  Fazer um agendamento
+                </button>
               </div>
             </template>
 
-            <template x-for="(appt, index) in savedAppointments" :key="index">
+            <template
+              x-for="appt in filteredSavedAppointments()"
+              :key="appt.id"
+            >
               <div
-                class="p-6 bg-obsidian-950 border border-obsidian-850 rounded-sm"
+                class="bg-obsidian-950 border rounded-sm p-5 space-y-4 transition-all"
+                :class="{
+                  'border-obsidian-800': appt.status === 'scheduled',
+                  'border-red-500/30 opacity-80': appt.status === 'cancelled',
+                  'border-green-500/20': appt.status === 'completed'
+                }"
               >
-                <div class="space-y-3">
-                  <div
-                    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-                  >
-                    <div class="flex flex-col gap-2">
+                <div
+                  class="flex flex-col sm:flex-row justify-between items-start gap-3"
+                >
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                       <span
-                        class="text-xs bg-gold-400 text-obsidian-900 font-semibold px-2 py-0.5 rounded-sm uppercase tracking-widest w-fit"
-                        x-text="formatDate(appt.date) + ' - ' + appt.time + 'h'"
+                        class="text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded-sm"
+                        :class="getStatusBadgeClass(appt.status)"
+                        x-text="getStatusLabel(appt.status)"
                       ></span>
                       <span
-                        class="text-xs text-obsidian-300 font-medium"
-                        x-text="'Cliente: ' + appt.clientName"
+                        class="text-[9px] text-obsidian-500 font-mono"
+                        x-text="'#' + appt.id"
                       ></span>
                     </div>
+                    <p
+                      class="text-sm text-white font-medium"
+                      x-text="formatDate(appt.date) + ' às ' + appt.time + 'h'"
+                    ></p>
+                    <p
+                      class="text-xs text-obsidian-400"
+                      x-text="appt.clientName"
+                    ></p>
+                  </div>
+                  <div
+                    class="flex gap-2 w-full sm:w-auto"
+                    x-show="appt.status === 'scheduled'"
+                  >
+                    <a
+                      :href="getWhatsAppLink(appt)"
+                      target="_blank"
+                      class="flex-1 sm:flex-none text-center text-[10px] text-green-400 border border-green-500/30 hover:bg-green-500/10 px-3 py-2 rounded-sm uppercase tracking-widest"
+                    >
+                      <i class="fa-brands fa-whatsapp"></i>
+                    </a>
                     <button
-                      @click="cancelSavedAppointment(index)"
-                      class="text-xs text-red-400 hover:text-red-300 border border-red-400 hover:border-red-300 px-3 py-1.5 rounded-sm uppercase tracking-widest text-[10px] font-medium w-full sm:w-auto"
+                      @click="openCancelModal(appt)"
+                      class="flex-1 sm:flex-none text-[10px] text-red-400 border border-red-500/30 hover:bg-red-500/10 px-3 py-2 rounded-sm uppercase tracking-widest font-medium"
                     >
                       Cancelar
                     </button>
                   </div>
-
-                  <div class="space-y-1.5 border-t border-obsidian-900 pt-3">
-                    <span
-                      class="text-[10px] uppercase tracking-widest text-obsidian-400 font-bold block"
-                      >Serviços Solicitados:</span
-                    >
-                    <div class="space-y-1">
-                      <template x-for="svc in appt.services">
-                        <div
-                          class="flex justify-between text-xs text-obsidian-300"
-                        >
-                          <span x-text="svc.name"></span>
-                          <span
-                            class="text-gold-400"
-                            x-text="'R$ ' + svc.price"
-                          ></span>
-                        </div>
-                      </template>
-                    </div>
-                  </div>
-
-                  <div
-                    class="flex justify-between items-center text-xs text-obsidian-400 pt-3 border-t border-obsidian-900"
-                  >
-                    <span
-                      class="text-sm font-serif text-gold-300 font-bold"
-                      x-text="'R$ ' + appt.totalPrice"
-                    ></span>
-                  </div>
                 </div>
+
+                <div
+                  class="space-y-1.5 border-t border-obsidian-900 pt-3"
+                  x-show="appt.status === 'cancelled'"
+                >
+                  <p class="text-[10px] text-red-400/80 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    Esta reserva foi cancelada. O horário foi liberado na agenda.
+                  </p>
+                </div>
+
+                <div class="space-y-1.5 border-t border-obsidian-900 pt-3">
+                  <span
+                    class="text-[10px] uppercase tracking-widest text-obsidian-500 font-bold block"
+                    >Serviços</span
+                  >
+                  <template x-for="svc in appt.services" :key="svc.name">
+                    <div
+                      class="flex justify-between text-xs text-obsidian-300"
+                    >
+                      <span x-text="svc.name"></span>
+                      <span
+                        class="text-gold-400"
+                        x-text="formatPrice(svc.price)"
+                      ></span>
+                    </div>
+                  </template>
+                </div>
+
+                <div
+                  class="flex justify-between items-center pt-3 border-t border-obsidian-900 text-xs"
+                >
+                  <span class="text-obsidian-500"
+                    ><i class="fa-regular fa-clock mr-1"></i
+                    ><span
+                      x-text="(appt.totalDuration || 0) + ' min'"
+                    ></span
+                  ></span>
+                  <span
+                    class="text-base font-serif font-bold"
+                    :class="appt.status === 'cancelled' ? 'text-obsidian-500 line-through' : 'text-[#c99e67]'"
+                    x-text="formatPrice(appt.totalPrice)"
+                  ></span>
+                </div>
+
+                <button
+                  x-show="appt.status === 'cancelled'"
+                  @click="rebookFromAppointment(appt)"
+                  class="w-full text-[10px] uppercase tracking-widest text-[#c99e67] border border-[#c99e67]/30 hover:bg-[#c99e67]/10 py-2.5 rounded-sm font-semibold transition-colors"
+                >
+                  Agendar novamente
+                </button>
               </div>
             </template>
           </div>
 
-          <div class="pt-4 border-t border-obsidian-800 flex justify-end">
+          <div
+            class="p-6 border-t border-obsidian-800 shrink-0 flex justify-between items-center gap-4"
+          >
+            <p class="text-[10px] text-obsidian-500">
+              Pagamento realizado no atelier
+            </p>
             <button
               @click="appointmentsModalOpen = false"
               class="bg-obsidian-800 hover:bg-obsidian-700 text-white text-xs tracking-widest uppercase py-3 px-6 rounded-sm"
             >
-              Fechar Painel
+              Fechar
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Toast de Notificações Rápidas -->
+      <div
+        x-show="cancelModalOpen"
+        style="display: none"
+        class="fixed inset-0 bg-obsidian-950/95 z-[60] backdrop-blur-md flex items-center justify-center p-6"
+      >
+        <div
+          class="bg-obsidian-900 border border-red-500/20 max-w-md w-full p-8 rounded-sm space-y-5 shadow-2xl"
+        >
+          <div class="text-center space-y-3">
+            <div
+              class="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 mx-auto text-xl"
+            >
+              <i class="fa-solid fa-calendar-xmark"></i>
+            </div>
+            <h3 class="font-serif text-xl text-white">Cancelar Reserva?</h3>
+            <p class="text-xs text-obsidian-400 leading-relaxed">
+              O horário de
+              <strong
+                class="text-white"
+                x-text="formatDate(appointmentToCancel?.date) + ' às ' + (appointmentToCancel?.time || '') + 'h'"
+              ></strong>
+              será liberado. Você poderá reagendar quando quiser.
+            </p>
+          </div>
+          <div
+            class="p-4 bg-obsidian-950 rounded-sm text-xs space-y-2 border border-obsidian-800"
+          >
+            <div class="flex justify-between text-obsidian-300">
+              <span>Total do atendimento</span>
+              <span
+                class="text-gold-300 font-semibold"
+                x-text="formatPrice(appointmentToCancel?.totalPrice)"
+              ></span>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <button
+              @click="cancelModalOpen = false"
+              class="flex-1 border border-obsidian-700 text-white text-xs uppercase tracking-widest py-3 rounded-sm hover:bg-obsidian-800 transition-colors"
+            >
+              Manter Reserva
+            </button>
+            <button
+              @click="confirmCancelAppointment()"
+              :disabled="cancellingAppointment"
+              class="flex-1 bg-red-500/90 hover:bg-red-500 text-white text-xs uppercase tracking-widest py-3 rounded-sm font-semibold disabled:opacity-50"
+            >
+              <span x-show="!cancellingAppointment">Sim, Cancelar</span>
+              <span x-show="cancellingAppointment">Cancelando...</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast de Notificações -->
       <div
         x-show="toastShow"
         style="display: none"
         x-transition
-        class="fixed bottom-24 sm:bottom-6 right-6 bg-obsidian-900 border border-gold-400/30 text-white text-xs px-6 py-4 rounded-sm shadow-2xl z-[80] flex items-center space-x-3 max-w-sm"
+        class="fixed bottom-24 sm:bottom-6 right-4 sm:right-6 z-[80] max-w-sm toast-enter"
       >
-        <span class="text-gold-400 text-base"
-          ><i class="fa-solid fa-circle-exclamation animate-pulse-subtle"></i
-        ></span>
-        <span x-text="toastMessage"></span>
+        <div
+          class="bg-obsidian-900 border text-white text-xs px-5 py-4 rounded-sm shadow-2xl flex items-start gap-3"
+          :class="{
+            'border-green-500/40': toastType === 'success',
+            'border-red-500/40': toastType === 'error',
+            'border-gold-400/30': toastType === 'info'
+          }"
+        >
+          <span
+            class="text-base shrink-0 mt-0.5"
+            :class="{
+              'text-green-400': toastType === 'success',
+              'text-red-400': toastType === 'error',
+              'text-gold-400': toastType === 'info'
+            }"
+          >
+            <i
+              :class="{
+                'fa-solid fa-circle-check': toastType === 'success',
+                'fa-solid fa-circle-xmark': toastType === 'error',
+                'fa-solid fa-circle-info': toastType === 'info'
+              }"
+            ></i>
+          </span>
+          <span class="leading-relaxed" x-text="toastMessage"></span>
+        </div>
       </div>
 
       <!-- WhatsApp Flutuante -->
@@ -2087,7 +2417,7 @@
           <div class="flex justify-between items-center">
             <div class="flex items-center gap-3.5">
               <div
-                class="w-11 h-11 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-obsidian-900 shadow-lg relative"
+                class="w-11 h-11 rounded-full bg-[#c99e67] flex items-center justify-center text-white shadow-lg relative"
               >
                 <i class="fa-solid fa-basket-shopping text-sm"></i>
                 <span
@@ -2115,7 +2445,7 @@
               </p>
               <p
                 class="text-lg sm:text-xl font-serif text-gold-400 font-bold leading-none"
-                x-text="'R$ ' + totalPrice + ',00'"
+                x-text="formatPrice(totalPrice)"
               ></p>
               <p
                 class="text-[10px] sm:text-xs text-obsidian-300 mt-1"
@@ -2366,10 +2696,17 @@
           bookingStep: 1,
           successModalOpen: false,
           appointmentsModalOpen: false,
+          cancelModalOpen: false,
+          appointmentToCancel: null,
+          cancellingAppointment: false,
+          appointmentTab: "active",
+          lastConfirmedAppointment: null,
+          confirmingBooking: false,
 
           // Sistema de Alertas (Toast)
           toastShow: false,
           toastMessage: "",
+          toastType: "info",
 
           // Banco de Dados Dinâmico de Agendamentos Recorrentes no LocalStorage
           savedAppointments: [],
@@ -2585,6 +2922,8 @@
           init() {
             // Dados já pré-carregados nas propriedades acima.
             // Tenta buscar dados atualizados do Supabase em background.
+            const savedUsername = localStorage.getItem("lm_comment_username");
+            if (savedUsername) this.newComment.username = savedUsername;
             this.loadSavedAppointments();
             this.loadDataFromDB();
 
@@ -2805,15 +3144,74 @@
                 .select();
               if (!error && data && data.length > 0) {
                 this.currentImageComments.push(data[0]);
+                this.saveMyCommentId(data[0].id);
+                localStorage.setItem(
+                  "lm_comment_username",
+                  this.newComment.username.trim(),
+                );
                 this.newComment.text = "";
-                // Keep username!
+                this.triggerToast("Comentário publicado!", "success");
               } else {
-                this.triggerToast("Erro ao enviar comentário.");
+                this.triggerToast("Erro ao enviar comentário.", "error");
               }
             } catch (e) {
-              this.triggerToast("Erro na conexão.");
+              this.triggerToast("Erro na conexão.", "error");
             } finally {
               this.submittingComment = false;
+            }
+          },
+
+          getMyCommentIds() {
+            try {
+              return JSON.parse(
+                localStorage.getItem("lm_my_comment_ids") || "[]",
+              );
+            } catch {
+              return [];
+            }
+          },
+
+          saveMyCommentId(id) {
+            const ids = this.getMyCommentIds();
+            if (!ids.includes(id)) {
+              ids.push(id);
+              localStorage.setItem("lm_my_comment_ids", JSON.stringify(ids));
+            }
+          },
+
+          removeMyCommentId(id) {
+            const ids = this.getMyCommentIds().filter((x) => x !== id);
+            localStorage.setItem("lm_my_comment_ids", JSON.stringify(ids));
+          },
+
+          isMyComment(commentId) {
+            return this.getMyCommentIds().includes(commentId);
+          },
+
+          async deleteGalleryComment(commentId) {
+            if (
+              !confirm(
+                "Deseja apagar este comentário? Esta ação não pode ser desfeita.",
+              )
+            )
+              return;
+
+            try {
+              const { error } = await supabase
+                .from("gallery_comments")
+                .delete()
+                .eq("id", commentId);
+
+              if (error) throw error;
+
+              this.currentImageComments = this.currentImageComments.filter(
+                (c) => c.id !== commentId,
+              );
+              this.removeMyCommentId(commentId);
+              this.triggerToast("Comentário removido.", "success");
+            } catch (e) {
+              console.error(e);
+              this.triggerToast("Erro ao apagar comentário.", "error");
             }
           },
 
@@ -2846,13 +3244,161 @@
             }
           },
 
+          formatPrice(value) {
+            const n = Number(value || 0);
+            return (
+              "R$ " +
+              n.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            );
+          },
+
+          get activeAppointmentsCount() {
+            return this.savedAppointments.filter(
+              (a) => a.status === "scheduled",
+            ).length;
+          },
+
+          filteredSavedAppointments() {
+            if (this.appointmentTab === "active")
+              return this.savedAppointments.filter(
+                (a) => a.status === "scheduled",
+              );
+            if (this.appointmentTab === "cancelled")
+              return this.savedAppointments.filter(
+                (a) => a.status === "cancelled",
+              );
+            if (this.appointmentTab === "completed")
+              return this.savedAppointments.filter(
+                (a) => a.status === "completed",
+              );
+            return this.savedAppointments;
+          },
+
+          getEmptyAppointmentsMessage() {
+            if (this.appointmentTab === "active")
+              return "Nenhuma reserva ativa no momento.";
+            if (this.appointmentTab === "cancelled")
+              return "Nenhum agendamento cancelado no histórico.";
+            if (this.appointmentTab === "completed")
+              return "Nenhum atendimento concluído ainda.";
+            return "Nenhum agendamento encontrado.";
+          },
+
+          getStatusLabel(status) {
+            if (status === "scheduled") return "Confirmado";
+            if (status === "cancelled") return "Cancelado";
+            if (status === "completed") return "Concluído";
+            return status;
+          },
+
+          getStatusBadgeClass(status) {
+            if (status === "scheduled")
+              return "bg-[#c99e67]/20 text-[#c99e67] border border-[#c99e67]/30";
+            if (status === "cancelled")
+              return "bg-red-500/15 text-red-400 border border-red-500/30";
+            if (status === "completed")
+              return "bg-green-500/15 text-green-400 border border-green-500/30";
+            return "bg-obsidian-800 text-obsidian-400";
+          },
+
+          normalizeSavedAppointment(a) {
+            let services = a.services;
+            if (typeof services === "string") {
+              try {
+                services = JSON.parse(services);
+              } catch {
+                services = [];
+              }
+            }
+            return {
+              id: a.id,
+              clientName: a.clientname || a.clientName || "",
+              clientPhone: a.clientphone || a.clientPhone || "",
+              date: a.date,
+              time: a.time,
+              notes: a.notes,
+              totalPrice: a.totalprice ?? a.totalPrice ?? 0,
+              totalDuration: a.totalduration ?? a.totalDuration ?? 0,
+              services: Array.isArray(services) ? services : [],
+              status: a.status || "scheduled",
+            };
+          },
+
+          getWhatsAppLink(appointment) {
+            if (!appointment) return "https://wa.me/5562981816251";
+            const servicesText = (appointment.services || [])
+              .map((s) => `${s.name} (${this.formatPrice(s.price)})`)
+              .join(", ");
+            const message = `Olá! Meu agendamento no L&M Atelier:\n\n📅 ${this.formatDate(appointment.date)} às ${appointment.time}h\n💇 ${servicesText}\n💰 ${this.formatPrice(appointment.totalPrice)}\n\nAguardo confirmação!`;
+            return `https://wa.me/5562981816251?text=${encodeURIComponent(message)}`;
+          },
+
+          openCancelModal(appt) {
+            this.appointmentToCancel = appt;
+            this.cancelModalOpen = true;
+          },
+
+          async confirmCancelAppointment() {
+            if (!this.appointmentToCancel) return;
+            this.cancellingAppointment = true;
+            const appt = this.appointmentToCancel;
+            try {
+              const { error } = await supabase
+                .from("appointments")
+                .update({ status: "cancelled" })
+                .eq("id", appt.id);
+
+              if (error) throw error;
+
+              notifyLorena(
+                "Cancelamento",
+                `O cliente ${appt.clientName} cancelou o agendamento de ${this.formatDate(appt.date)} às ${appt.time}h.`,
+              );
+
+              const idx = this.savedAppointments.findIndex(
+                (a) => a.id === appt.id,
+              );
+              if (idx >= 0)
+                this.savedAppointments[idx].status = "cancelled";
+
+              this.cancelModalOpen = false;
+              this.appointmentToCancel = null;
+              this.appointmentTab = "cancelled";
+              this.triggerToast(
+                "Reserva cancelada. O horário foi liberado na agenda.",
+                "success",
+              );
+            } catch (e) {
+              this.triggerToast("Erro ao cancelar reserva.", "error");
+            } finally {
+              this.cancellingAppointment = false;
+            }
+          },
+
+          rebookFromAppointment(appt) {
+            this.appointmentsModalOpen = false;
+            this.bookingState.services = [...(appt.services || [])];
+            this.bookingState.clientName = appt.clientName || "";
+            this.bookingState.clientPhone = appt.clientPhone || "";
+            this.bookingStep = 2;
+            this.scrollToSection("agendador");
+            this.triggerToast(
+              "Serviços carregados! Escolha uma nova data e horário.",
+              "info",
+            );
+          },
+
           // Lançar um aviso Toast rápido
-          triggerToast(message) {
+          triggerToast(message, type = "info") {
             this.toastMessage = message;
+            this.toastType = type;
             this.toastShow = true;
             setTimeout(() => {
               this.toastShow = false;
-            }, 4000);
+            }, 4500);
           },
 
           parseTeamHighlights(highlights) {
@@ -2878,7 +3424,7 @@
             );
             if (idx > -1) {
               this.bookingState.services.splice(idx, 1);
-              this.triggerToast(`"${name}" removido.`);
+              this.triggerToast(`"${name}" removido do ritual.`, "info");
               return;
             }
 
@@ -2890,7 +3436,8 @@
             });
 
             this.triggerToast(
-              `"${name}" selecionado. Role até o agendador para concluir.`,
+              `"${name}" adicionado ao seu ritual.`,
+              "success",
             );
           },
 
@@ -2898,7 +3445,7 @@
           removeServiceFromBooking(index) {
             const removedSvcName = this.bookingState.services[index].name;
             this.bookingState.services.splice(index, 1);
-            this.triggerToast(`"${removedSvcName}" removido.`);
+            this.triggerToast(`"${removedSvcName}" removido.`, "info");
           },
 
           get totalPrice() {
@@ -2983,6 +3530,8 @@
 
           // Executar gravação final do agendamento
           async confirmBookingFinal() {
+            if (this.confirmingBooking) return;
+            this.confirmingBooking = true;
             const totalPrice = this.bookingState.services.reduce(
               (acc, svc) => acc + Number(svc.price || 0),
               0,
@@ -3028,6 +3577,7 @@
                 console.error("Erro Supabase ao agendar:", error);
                 this.triggerToast(
                   "Erro ao salvar agendamento. Tente novamente.",
+                  "error",
                 );
                 return;
               }
@@ -3046,18 +3596,25 @@
                 this.savedAppointments.push({ ...apptLocal, id: apptId });
               }
 
+              this.lastConfirmedAppointment = { ...apptLocal };
+
               const servicesText = apptLocal.services
-                .map((s) => `${s.name} (R$ ${s.price})`)
+                .map((s) => `${s.name} (${this.formatPrice(s.price)})`)
                 .join(", ");
               notifyLorena(
                 "Novo Agendamento",
-                `Cliente: ${apptLocal.clientName}\nData: ${this.formatDate(apptLocal.date)} às ${apptLocal.time}h\nServiços: ${servicesText}\nTotal: R$ ${apptLocal.totalPrice}`,
+                `Cliente: ${apptLocal.clientName}\nData: ${this.formatDate(apptLocal.date)} às ${apptLocal.time}h\nServiços: ${servicesText}\nTotal: ${this.formatPrice(apptLocal.totalPrice)}`,
               );
-              this.sendWhatsAppNotification(apptLocal);
               this.successModalOpen = true;
+              this.triggerToast("Agendamento confirmado com sucesso!", "success");
             } catch (e) {
               console.error("Erro ao confirmar agendamento:", e);
-              this.triggerToast("Erro: " + (e.message || JSON.stringify(e)));
+              this.triggerToast(
+                "Erro: " + (e.message || JSON.stringify(e)),
+                "error",
+              );
+            } finally {
+              this.confirmingBooking = false;
             }
           },
 
@@ -3073,58 +3630,19 @@
                   .select("*")
                   .in("id", myIds);
                 if (data) {
-                  // Normaliza colunas lowercase do banco para camelCase local
                   this.savedAppointments = data
-                    .filter((a) => a.status === "scheduled")
-                    .map((a) => ({
-                      id: a.id,
-                      clientName: a.clientname || a.clientName || "",
-                      clientPhone: a.clientphone || a.clientPhone || "",
-                      date: a.date,
-                      time: a.time,
-                      notes: a.notes,
-                      totalPrice: a.totalprice ?? a.totalPrice ?? 0,
-                      totalDuration: a.totalduration ?? a.totalDuration ?? 0,
-                      services:
-                        typeof a.services === "string"
-                          ? JSON.parse(a.services)
-                          : a.services || [],
-                      status: a.status,
-                    }));
+                    .map((a) => this.normalizeSavedAppointment(a))
+                    .sort((a, b) => {
+                      const da = new Date(a.date + "T" + (a.time || "00:00"));
+                      const db = new Date(b.date + "T" + (b.time || "00:00"));
+                      return db - da;
+                    });
                 }
               } catch (e) {
                 this.savedAppointments = [];
               }
             } else {
               this.savedAppointments = [];
-            }
-          },
-
-          // Cancelar agendamento do histórico
-          async cancelSavedAppointment(index) {
-            const appt = this.savedAppointments[index];
-            if (
-              confirm(
-                `Deseja realmente cancelar o agendamento do dia ${this.formatDate(appt.date)} às ${appt.time}h?`,
-              )
-            ) {
-              const { error } = await supabase
-                .from("appointments")
-                .update({ status: "cancelled" })
-                .eq("id", appt.id);
-
-              if (!error) {
-                notifyLorena(
-                  "Cancelamento",
-                  `O cliente ${appt.clientName || appt.clientname} cancelou o agendamento de ${this.formatDate(appt.date)} às ${appt.time}h.`,
-                );
-
-                // Remover do histórico
-                this.savedAppointments.splice(index, 1);
-                this.triggerToast("Reserva cancelada com sucesso.");
-              } else {
-                this.triggerToast("Erro ao cancelar reserva.");
-              }
             }
           },
 
@@ -3152,17 +3670,8 @@
           // Abrir Painel de Gestão de Reservas Existentes
           openAppointmentsModal() {
             this.loadSavedAppointments();
+            this.appointmentTab = "active";
             this.appointmentsModalOpen = true;
-          },
-
-          // Enviar notificação via WhatsApp
-          sendWhatsAppNotification(appointment) {
-            const servicesText = appointment.services
-              .map((s) => `${s.name} (R$ ${s.price})`)
-              .join(", ");
-            const message = `Olá! Agendamento confirmado no L&M Atelier:\n\n📅 Data: ${this.formatDate(appointment.date)}\n⏰ Horário: ${appointment.time}h\n💇 Serviços: ${servicesText}\n💰 Total: R$ ${appointment.totalPrice}\n\nEstaremos te esperando com a melhor experiência!`;
-            const whatsappURL = `https://wa.me/5562981816251?text=${encodeURIComponent(message)}`;
-            window.open(whatsappURL, "_blank");
           },
         };
       }

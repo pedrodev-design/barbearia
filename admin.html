@@ -77,6 +77,10 @@
                 <button @click="currentTab = 'gallery'" :class="currentTab === 'gallery' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3">
                     <i class="fa-solid fa-images w-4 text-center"></i> Galeria
                 </button>
+                <button @click="currentTab = 'comments'" :class="currentTab === 'comments' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3 relative">
+                    <i class="fa-solid fa-comments w-4 text-center"></i> Comentários
+                    <span x-show="galleryComments.length > 0" class="ml-auto bg-gold-500/20 text-gold-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full" x-text="galleryComments.length"></span>
+                </button>
                 <button @click="currentTab = 'environments'" :class="currentTab === 'environments' ? 'text-gold-400 bg-obsidian-850 border-r-2 border-gold-400' : 'text-obsidian-300 hover:text-white'" class="w-full text-left px-6 py-3 text-sm transition-colors flex items-center gap-3">
                     <i class="fa-solid fa-couch w-4 text-center"></i> Ambientes
                 </button>
@@ -385,6 +389,43 @@
                 </div>
             </div>
 
+            <!-- GALLERY COMMENTS TAB -->
+            <div x-show="currentTab === 'comments'" class="space-y-8">
+                <div>
+                    <h2 class="font-serif text-3xl text-white">Comentários da Galeria</h2>
+                    <p class="text-xs text-obsidian-400">Modere e remova comentários publicados nas fotos</p>
+                </div>
+
+                <div class="space-y-3">
+                    <template x-for="c in galleryComments" :key="c.id">
+                        <div class="bg-obsidian-900 border border-obsidian-800 p-5 rounded-sm flex flex-col sm:flex-row gap-4">
+                            <div class="w-16 h-16 rounded-sm overflow-hidden border border-obsidian-800 shrink-0 bg-obsidian-950" x-show="getGalleryThumb(c.gallery_id)">
+                                <img :src="getGalleryThumb(c.gallery_id)" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-grow space-y-2 min-w-0">
+                                <div class="flex justify-between items-start gap-3">
+                                    <div>
+                                        <p class="text-white text-sm font-semibold" x-text="c.username"></p>
+                                        <p class="text-[10px] text-obsidian-500" x-text="formatDate(c.created_at?.split('T')[0]) + (c.created_at ? ' às ' + c.created_at.split('T')[1]?.substring(0,5) : '')"></p>
+                                    </div>
+                                    <button @click="deleteGalleryComment(c.id)" class="text-red-400 hover:text-red-300 px-2 py-1 shrink-0" title="Excluir comentário">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                <p class="text-sm text-obsidian-300 leading-relaxed break-words" x-text="c.comment"></p>
+                                <p class="text-[10px] text-gold-400/80 uppercase tracking-widest">
+                                    <i class="fa-solid fa-image mr-1"></i>
+                                    <span x-text="getGalleryTitle(c.gallery_id)"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="galleryComments.length === 0" class="py-16 text-center text-obsidian-500 text-sm">
+                        Nenhum comentário na galeria ainda.
+                    </div>
+                </div>
+            </div>
+
             <!-- ENVIRONMENTS TAB -->
             <div x-show="currentTab === 'environments'" class="space-y-8">
                 <div class="flex justify-between items-center">
@@ -653,6 +694,7 @@
                 completedAppointments: [],
                 reviews: [],
                 gallery: [],
+                galleryComments: [],
                 messages: [],
                 teamMembers: [],
                 teamSectionLabel: 'Nossa Equipe',
@@ -757,6 +799,9 @@
                     
                     const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
                     if (gallery) this.gallery = gallery;
+
+                    const { data: galleryComments } = await supabase.from('gallery_comments').select('*').order('created_at', { ascending: false });
+                    if (galleryComments) this.galleryComments = galleryComments;
 
                     const { data: team } = await supabase.from('team_members').select('*').order('order', { ascending: true });
                     if (team) this.teamMembers = team;
@@ -1040,6 +1085,26 @@
                         await supabase.from('gallery').delete().eq('id', g.id);
                         await this.loadData();
                     }
+                },
+
+                getGalleryTitle(galleryId) {
+                    const item = this.gallery.find(g => g.id === galleryId);
+                    return item?.title || 'Foto da galeria';
+                },
+
+                getGalleryThumb(galleryId) {
+                    const item = this.gallery.find(g => g.id === galleryId);
+                    return item?.url || '';
+                },
+
+                async deleteGalleryComment(id) {
+                    if (!confirm('Excluir este comentário permanentemente?')) return;
+                    const { error } = await supabase.from('gallery_comments').delete().eq('id', id);
+                    if (error) {
+                        alert('Erro ao excluir comentário.');
+                        return;
+                    }
+                    await this.loadData();
                 },
 
                 // Environments
