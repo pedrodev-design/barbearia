@@ -1803,7 +1803,7 @@
                 type="text"
                 x-model="reviewForm.name"
                 required
-                class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors"
+                class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 placeholder-obsidian-400 focus:outline-none focus:ring-1 focus:ring-gold-500 transition-colors"
               />
             </div>
             <div class="space-y-2">
@@ -1816,7 +1816,7 @@
                 x-model="reviewForm.role"
                 placeholder="Ex: Cliente Studio Lorena"
                 required
-                class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors"
+                class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 placeholder-obsidian-400 focus:outline-none focus:ring-1 focus:ring-gold-500 transition-colors"
               />
             </div>
             <div class="space-y-2">
@@ -1827,7 +1827,7 @@
               <select
                 x-model="reviewForm.rating"
                 required
-                class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors"
+                class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 focus:outline-none focus:ring-1 focus:ring-gold-500 transition-colors"
               >
                 <option value="5">5 Estrelas - Excelente</option>
                 <option value="4">4 Estrelas - Muito Bom</option>
@@ -1845,7 +1845,7 @@
                 x-model="reviewForm.comment"
                 required
                 rows="3"
-                class="w-full bg-obsidian-950 border border-obsidian-800 focus:border-gold-500 rounded-sm p-3 text-white focus:outline-none transition-colors"
+                class="w-full bg-white border border-obsidian-300 focus:border-gold-500 rounded-sm p-3 text-obsidian-900 placeholder-obsidian-400 focus:outline-none focus:ring-1 focus:ring-gold-500 transition-colors"
               ></textarea>
             </div>
             <button
@@ -2391,6 +2391,36 @@
     <script>
       // Dados iniciais agora gerenciados pelo Supabase (ver database.sql)
 
+      const DEFAULT_APPROVED_REVIEWS = [
+        {
+          id: 1,
+          name: "Ana Maria G.",
+          role: "Cliente Studio Lorena",
+          rating: 5,
+          comment:
+            "Estou acostumada a fazer depilação e a Lorena é simplesmente genial. A cera que ela desenvolve não me dá foliculite e ela tem uma delicadeza que torna o momento super tolerável. O estúdio é impecável em termos de privacidade.",
+          initials: "AM",
+        },
+        {
+          id: 2,
+          name: "Rodrigo C.",
+          role: "Cliente Márcio Lounge",
+          rating: 5,
+          comment:
+            "Encontrei no Márcio o barbeiro ideal. Ele tem uma precisão na tesoura incrível para cortes clássicos e a barboterapia é de dormir de tão relaxante. Faço depilação no peito com ele e a discrição e eficácia são absolutas.",
+          initials: "RC",
+        },
+        {
+          id: 3,
+          name: "Valéria S.",
+          role: "Cliente Estética Atelier",
+          rating: 5,
+          comment:
+            "O L&M Atelier é diferenciado. O agendamento é super fluido e quando você chega é recebida de forma exclusiva com um bom espumante brut. Lorena cuidou do meu design de sobrancelhas e o resultado foi espetacular.",
+          initials: "VS",
+        },
+      ];
+
       function bookingApp() {
         return {
           // Estado da UI
@@ -2562,35 +2592,7 @@
               time: 30,
             },
           ],
-          approvedReviews: [
-            {
-              id: 1,
-              name: "Ana Maria G.",
-              role: "Cliente Studio Lorena",
-              rating: 5,
-              comment:
-                "Estou acostumada a fazer depilação e a Lorena é simplesmente genial. A cera que ela desenvolve não me dá foliculite e ela tem uma delicadeza que torna o momento super tolerável. O estúdio é impecável em termos de privacidade.",
-              initials: "AM",
-            },
-            {
-              id: 2,
-              name: "Rodrigo C.",
-              role: "Cliente Márcio Lounge",
-              rating: 5,
-              comment:
-                "Encontrei no Márcio o barbeiro ideal. Ele tem uma precisão na tesoura incrível para cortes clássicos e a barboterapia é de dormir de tão relaxante. Faço depilação no peito com ele e a discrição e eficácia são absolutas.",
-              initials: "RC",
-            },
-            {
-              id: 3,
-              name: "Valéria S.",
-              role: "Cliente Estética Atelier",
-              rating: 5,
-              comment:
-                "O L&M Atelier é diferenciado. O agendamento é super fluido e quando você chega é recebida de forma exclusiva com um bom espumante brut. Lorena cuidou do meu design de sobrancelhas e o resultado foi espetacular.",
-              initials: "VS",
-            },
-          ],
+          approvedReviews: [...DEFAULT_APPROVED_REVIEWS],
           gallery: [],
           environments: [
             {
@@ -2671,14 +2673,22 @@
                 }
               }
 
-              // Buscar avaliações aprovadas
+              // Buscar avaliações aprovadas (mescla com padrões para não perder as antigas)
               const { data: reviews, error: revError } = await supabase
                 .from("reviews")
                 .select("*")
                 .eq("status", "approved")
                 .order("date", { ascending: false });
               if (!revError && reviews && reviews.length > 0) {
-                this.approvedReviews = reviews;
+                const reviewKey = (r) => `${r.name}|${r.comment}`;
+                const seen = new Set(reviews.map(reviewKey));
+                const merged = [
+                  ...reviews,
+                  ...DEFAULT_APPROVED_REVIEWS.filter(
+                    (r) => !seen.has(reviewKey(r)),
+                  ),
+                ];
+                this.approvedReviews = merged;
               }
 
               // Buscar galeria
