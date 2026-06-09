@@ -793,24 +793,23 @@
                   :key="'lorena-'+idx"
                 >
                   <div
-                    :class="bookingState.services.some(s => s.name === service.name) ? 'bg-gold-400 border-gold-400 shadow-[0_8px_30px_rgba(201,158,103,0.3)] scale-[1.02] z-10' : 'bg-obsidian-900 border-obsidian-850 hover:border-obsidian-700'"
+                    :class="bookingState.services.some(s => s.name === service.name) ? 'bg-[#c99e67] border-[#c99e67]' : 'bg-obsidian-900 border-obsidian-850 hover:border-obsidian-700'"
                     class="p-6 border rounded-sm transition-all duration-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative group"
                   >
                     <div class="space-y-1 max-w-xl">
                       <div class="flex items-center gap-3">
                         <h4
-                          :class="bookingState.services.some(s => s.name === service.name) ? 'text-obsidian-900' : 'text-white'"
-                          class="font-serif text-lg font-medium transition-colors duration-500"
+                          class="font-serif text-lg font-medium text-white transition-colors duration-500"
                           x-text="service.name"
                         ></h4>
                       </div>
                       <p
-                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-obsidian-800 font-medium' : 'text-obsidian-400 font-light'"
+                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-white/90 font-medium' : 'text-obsidian-400 font-light'"
                         class="text-xs transition-colors duration-500"
                         x-text="service.desc"
                       ></p>
                       <span
-                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-obsidian-800 font-medium' : 'text-obsidian-300'"
+                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-white/90 font-medium' : 'text-obsidian-300'"
                         class="text-xs block pt-1 transition-colors duration-500"
                         ><i class="fa-regular fa-clock mr-1"></i>
                         <span x-text="service.time + ' minutos (aprox)'"></span
@@ -820,13 +819,13 @@
                       class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end shrink-0"
                     >
                       <span
-                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-obsidian-900' : 'text-gold-300'"
+                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-white' : 'text-gold-300'"
                         class="font-serif text-xl font-semibold transition-colors duration-500"
                         x-text="'R$ ' + service.price + ',00'"
                       ></span>
                       <button
                         @click="addServiceToBooking('lorena', service.name, service.price, service.time)"
-                        :class="bookingState.services.some(s => s.name === service.name) ? 'bg-obsidian-900 text-gold-400 border-obsidian-900 shadow-md hover:bg-obsidian-800' : 'border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 bg-transparent'"
+                        :class="bookingState.services.some(s => s.name === service.name) ? 'bg-obsidian-900 text-white border-obsidian-900 hover:bg-obsidian-800' : 'border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 bg-transparent'"
                         class="border px-4 py-2 text-xs tracking-widest uppercase rounded-sm transition-all duration-300 flex items-center gap-2"
                       >
                         <span
@@ -867,24 +866,23 @@
                   :key="'marcio-'+idx"
                 >
                   <div
-                    :class="bookingState.services.some(s => s.name === service.name) ? 'bg-gold-400 border-gold-400 shadow-[0_8px_30px_rgba(201,158,103,0.3)] scale-[1.02] z-10' : 'bg-obsidian-900 border-obsidian-850 hover:border-obsidian-700'"
+                    :class="bookingState.services.some(s => s.name === service.name) ? 'bg-[#c99e67] border-[#c99e67]' : 'bg-obsidian-900 border-obsidian-850 hover:border-obsidian-700'"
                     class="p-6 border rounded-sm transition-all duration-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative group"
                   >
                     <div class="space-y-1 max-w-xl">
                       <div class="flex items-center gap-3">
                         <h4
-                          :class="bookingState.services.some(s => s.name === service.name) ? 'text-obsidian-900' : 'text-white'"
-                          class="font-serif text-lg font-medium transition-colors duration-500"
+                          class="font-serif text-lg font-medium text-white transition-colors duration-500"
                           x-text="service.name"
                         ></h4>
                       </div>
                       <p
-                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-obsidian-800 font-medium' : 'text-obsidian-400 font-light'"
+                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-white/90 font-medium' : 'text-obsidian-400 font-light'"
                         class="text-xs transition-colors duration-500"
                         x-text="service.desc"
                       ></p>
                       <span
-                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-obsidian-800 font-medium' : 'text-obsidian-300'"
+                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-white/90 font-medium' : 'text-obsidian-300'"
                         class="text-xs block pt-1 transition-colors duration-500"
                         ><i class="fa-regular fa-clock mr-1"></i>
                         <span x-text="service.time + ' minutos (aprox)'"></span
@@ -894,13 +892,13 @@
                       class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end shrink-0"
                     >
                       <span
-                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-obsidian-900' : 'text-gold-300'"
+                        :class="bookingState.services.some(s => s.name === service.name) ? 'text-white' : 'text-gold-300'"
                         class="font-serif text-xl font-semibold transition-colors duration-500"
                         x-text="'R$ ' + service.price + ',00'"
                       ></span>
                       <button
                         @click="addServiceToBooking('marcio', service.name, service.price, service.time)"
-                        :class="bookingState.services.some(s => s.name === service.name) ? 'bg-obsidian-900 text-gold-400 border-obsidian-900 shadow-md hover:bg-obsidian-800' : 'border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 bg-transparent'"
+                        :class="bookingState.services.some(s => s.name === service.name) ? 'bg-obsidian-900 text-white border-obsidian-900 hover:bg-obsidian-800' : 'border-gold-400/30 text-gold-400 hover:bg-gold-400 hover:text-obsidian-900 bg-transparent'"
                         class="border px-4 py-2 text-xs tracking-widest uppercase rounded-sm transition-all duration-300 flex items-center gap-2"
                       >
                         <span
@@ -1373,7 +1371,7 @@
                       >
                       <span
                         class="text-lg font-serif text-gold-300 font-bold"
-                        x-text="'R$ ' + getTotalPrice()"
+                        x-text="'R$ ' + totalPrice"
                       ></span>
                     </div>
                   </div>
@@ -2229,8 +2227,14 @@
               </p>
               <p
                 class="text-lg sm:text-xl font-serif text-gold-400 font-bold leading-none"
-                x-text="'R$ ' + totalPrice"
+                x-text="'R$ ' + totalPrice + ',00'"
               ></p>
+              <p
+                class="text-[10px] sm:text-xs text-obsidian-300 mt-1"
+              >
+                <i class="fa-regular fa-clock mr-1"></i
+                ><span x-text="totalDuration + ' min'"></span>
+              </p>
             </div>
           </div>
 
@@ -2926,15 +2930,14 @@
             this.triggerToast(`"${removedSvcName}" removido.`);
           },
 
-          // Getters para soma de valores
-          getTotalPrice() {
+          get totalPrice() {
             return this.bookingState.services.reduce(
               (acc, svc) => acc + parseInt(svc.price || 0),
               0,
             );
           },
 
-          getTotalDuration() {
+          get totalDuration() {
             return this.bookingState.services.reduce(
               (acc, svc) => acc + parseInt(svc.duration || 0),
               0,
@@ -3009,6 +3012,15 @@
 
           // Executar gravação final do agendamento
           async confirmBookingFinal() {
+            const totalPrice = this.bookingState.services.reduce(
+              (acc, svc) => acc + Number(svc.price || 0),
+              0,
+            );
+            const totalDuration = this.bookingState.services.reduce(
+              (acc, svc) => acc + Number(svc.duration || 0),
+              0,
+            );
+
             // Dados para exibição local (camelCase)
             const apptLocal = {
               clientName: this.bookingState.clientName,
@@ -3016,8 +3028,8 @@
               date: this.bookingState.date,
               time: this.bookingState.time,
               notes: this.bookingState.notes,
-              totalPrice: this.totalPrice,
-              totalDuration: this.totalDuration,
+              totalPrice,
+              totalDuration,
               services: [...this.bookingState.services],
               status: "scheduled",
             };
@@ -3028,9 +3040,9 @@
               clientphone: this.bookingState.clientPhone,
               date: this.bookingState.date,
               time: this.bookingState.time,
-              notes: this.bookingState.notes,
-              totalprice: this.totalPrice,
-              totalduration: this.totalDuration,
+              notes: this.bookingState.notes || "",
+              totalprice: totalPrice,
+              totalduration: totalDuration,
               services: JSON.stringify([...this.bookingState.services]),
               status: "scheduled",
             };
